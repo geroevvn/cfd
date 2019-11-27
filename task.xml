@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+	
+<task method="FVM_TVD_IMPLICIT">
+	<decomp>
+		<processors value="64" />
+	</decomp>
+	<control>
+                 <STEADY value="0" />
+		 <CFL value="1000.1"> 			<!-- число Куранта -->
+		  <start value="1.0" />
+		  <scale value="1.05" />
+		  <max value="1.0" />
+		  <step value="500" />
+		  <max_limited_cells value="30" />
+        </CFL>
+		<TAU 			value="4.0e-9" />		<!-- шаг по времени, используется меньшее значение из этого или из полученного из числа Куранта -->
+		<TMAX 			value="4" />			<!-- время, до которго выполняется расчет -->
+                <STEP_MAX value="100000000" />
+                <FILE_OUTPUT_STEP 	value="50" />            <!-- количество итераций, через которые выполняется вывод результатов в файл -->
+		<LOG_OUTPUT_STEP 	value="1" />          <!-- интервал вывода краткой информации в лог-файл -->
+                <FLUX value="GODUNOV" /> <!-- LAX, GODUNOV -->
+                <TURBULENCE_MODEL value="K_EPS" />
+	</control>
+        <smoothing>
+                   <using value="0" />
+                   <coefficient value="0.1" />
+        </smoothing>
+        <limits>
+                <ro min="0.0001" max="10000" />
+                <p min="0.0001" max="1.0e+6" />
+                <u max="2.0e+4" />
+        </limits>
+	<mesh>
+		<fileType value="GMSH_UNV" />
+		<name value="RAE2822.unv" />                      <!-- имя файлов с данными сетки -->
+	</mesh>
+	<materials count="1">
+		<material id="0">
+			<name>air</name>
+			<parameters>
+				<M  value="0.02898" />  	<!-- молярная масса                          -->
+				<Cp value="1004" /> 		<!-- теплоемкость при постоянном давлении    -->
+				<ML value="0" /> 			<!-- динамическая вязкость                   -->
+				<K  value="0" /> 			<!-- коэффициент теплопроводности            -->
+			</parameters>
+		</material>
+	</materials>
+	<regions count="1">
+		<region id="0">
+			<name>0</name>
+			<cell type="0" />
+			<material id="0" />
+			<parameters>
+
+				<ro1 value="1.4" />
+				<Vx1 value="0" /> 			<!-- первая компонента скорости              -->
+               			<Vy1 value="0" /> 			<!-- вторая компонента                       -->
+               			<Vz1 value="3" /> 			<!-- вторая компонента                       &ndash;&gt;-->
+               			<P1 value="1" /> 					
+
+				<ro value="0.43567" />
+				<Vx value="219.521" /> 			<!-- первая компонента скорости              -->
+               			<Vy value="8.85526" /> 			<!-- вторая компонента                       -->
+               			<Vz value="0" /> 			<!-- вторая компонента                       &ndash;&gt;-->
+               			<P value="28263.7" /> 			<!-- давление                                -->
+			</parameters>
+		</region>
+	</regions>
+
+	<boundaries count="3">
+		<boundCond FaceType="1">
+			<name>INLET</name>
+			<type>BOUND_INLET</type>
+			<parameters>
+
+				<ro1 value="1.4" />
+				<Vx1 value="0" /> 			<!-- первая компонента скорости              -->
+               			<Vy1 value="0" /> 			<!-- вторая компонента                       -->
+               			<Vz1 value="3" /> 			<!-- вторая компонента                       &ndash;&gt;-->
+               			<P1 value="1" /> 
+
+				<ro value="0.43567" />
+				<Vx value="219.521" /> 			<!-- первая компонента скорости              -->
+               			<Vy value="8.85526" /> 			<!-- вторая компонента                       -->
+               			<Vz value="0" /> 			<!-- вторая компонента                       &ndash;&gt;-->
+               			<P value="28263.7" /> 			<!-- давление              	<!-- давление                                -->
+			</parameters>
+		</boundCond>
+		<boundCond FaceType="2">
+			<name>OUTLET</name>
+			<type>BOUND_OUTLET</type>
+		</boundCond>
+		<boundCond FaceType="3">
+			<name>WALL</name>
+			<type>BOUND_WALL</type>
+		</boundCond>
+						
+
+	</boundaries>
+</task>
