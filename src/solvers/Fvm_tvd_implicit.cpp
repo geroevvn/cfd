@@ -176,7 +176,7 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 			it->cellFDP.ru = u * ro;
 			it->cellFDP.rv = v * ro;
 			it->cellFDP.rw = w * ro;
-			it->cellFDP.gamma = 1.40001;
+			it->cellFDP.gamma = 1.40000;
 			it->cellFDP.P = P;
 
 			it->cellFDP.rE = CellFluidDynamicsProps::calc_rE(ro, P, u, v, w, it->cellFDP.gamma);
@@ -222,7 +222,7 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 				it->faceFDP.ru = u * ro;
 				it->faceFDP.rv = v * ro;
 				it->faceFDP.rw = w * ro;
-				it->faceFDP.gamma = 1.40001;
+				it->faceFDP.gamma = 1.40000;
 				it->faceFDP.P = P;
 
 				it->faceFDP.rE = CellFluidDynamicsProps::calc_rE(ro, P, u, v, w, it->faceFDP.gamma);
@@ -566,10 +566,41 @@ void FVM_TVD_IMPLICIT::run()
 
 	std::cout << V /TAU << std::endl;
 
+	for(int i = 0; i < msh->cells.size(); i++)
+	{
+        Point po;
+        po.x = msh->cells[i]->center.x;
+        cout <<  i<< " : " << po.x << endl;
+        //if(po.x < 0.5) exit(0);
+        if(po.x < 0.5)
+        {
+            msh->cells[i]->cellFDP.ro = 1;
+            msh->cells[i]->cellFDP.ru = 0;
+            msh->cells[i]->cellFDP.rv = 0;
+            msh->cells[i]->cellFDP.rw = 0;
+            msh->cells[i]->cellFDP.gamma = 1.4;
+
+            msh->cells[i]->cellFDP.P = 1;
+            msh->cells[i]->cellFDP.rE = CellFluidDynamicsProps::calc_rE(1,1,0,0,0,1.4);
+        }
+        else
+        {
+            msh->cells[i]->cellFDP.ro = 0.125;
+            msh->cells[i]->cellFDP.ru = 0;
+            msh->cells[i]->cellFDP.rv = 0;
+            msh->cells[i]->cellFDP.rw = 0;
+            msh->cells[i]->cellFDP.gamma = 1.4;
+
+            msh->cells[i]->cellFDP.P = 0.1;
+            msh->cells[i]->cellFDP.rE = CellFluidDynamicsProps::calc_rE(0.125,0.1,0,0,0,1.4);
+        }
+	}
+
+
 	double t = 0;
 	int step = 0;
-	double eps = 1E-8;
-	int max_iter = 50;
+	double eps = 1E-7;
+	int max_iter = 100;
 
 
 	MatrixSolver* solverMtx = MatrixSolver::create("ZEIDEL");
@@ -650,8 +681,9 @@ void FVM_TVD_IMPLICIT::run()
 		{
 			c1 = it->c[0]->index;
 
-			it->faceFDP.ro = it->c[0]->cellFDP.ro;
+            it->faceFDP.ro = it->c[0]->cellFDP.ro;
 			it->faceFDP.rE = it->c[0]->cellFDP.rE;
+			it->faceFDP.P = it->c[0]->cellFDP.P;
 			it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
 
 			double rvel_n = it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z;
@@ -731,6 +763,7 @@ void FVM_TVD_IMPLICIT::run()
 			it->faceFDP.rv = it->c[0]->cellFDP.rv;
 			it->faceFDP.rw = it->c[0]->cellFDP.rw;
 			it->faceFDP.rE = it->c[0]->cellFDP.rE;
+			it->faceFDP.P = it->c[0]->cellFDP.P;
 			it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
 
 			flux_Lax_Friedrichs(Flux, it->c[0]->cellFDP, it->faceFDP, it->n);
@@ -1458,6 +1491,7 @@ void FVM_TVD_IMPLICIT::parallel_run()
 
                 it->faceFDP.ro = it->c[0]->cellFDP.ro;
                 it->faceFDP.rE = it->c[0]->cellFDP.rE;
+                it->faceFDP.P = it->c[0]->cellFDP.P;
                 it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
 
                 double rvel_n = it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z;
@@ -1537,6 +1571,7 @@ void FVM_TVD_IMPLICIT::parallel_run()
                 it->faceFDP.rv = it->c[0]->cellFDP.rv;
                 it->faceFDP.rw = it->c[0]->cellFDP.rw;
                 it->faceFDP.rE = it->c[0]->cellFDP.rE;
+                it->faceFDP.P = it->c[0]->cellFDP.P;
                 it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
 
                 flux_Lax_Friedrichs(Flux, it->c[0]->cellFDP, it->faceFDP, it->n);
@@ -1751,7 +1786,6 @@ void FVM_TVD_IMPLICIT::parallel_run()
         Parallel::b_cast_double_buff(Parallel::get_root_rank(), solverMtx->get_CSR_instance()->na, solverMtx->get_CSR_instance()->a);
         Parallel::b_cast_double_buff(Parallel::get_root_rank(), 5 * nc, right5_rank);
         */
-
         solveErr = solverMtx->solve_parallel(eps, max_iter);
 
 
