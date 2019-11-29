@@ -599,7 +599,7 @@ void FVM_TVD_IMPLICIT::run()
 
 	double t = 0;
 	int step = 0;
-	double eps = 1E-7;
+	double eps = 1E-5;
 	int max_iter = 100;
 
 
