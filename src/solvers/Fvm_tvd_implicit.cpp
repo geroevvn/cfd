@@ -578,21 +578,21 @@ void FVM_TVD_IMPLICIT::run()
             msh->cells[i]->cellFDP.ru = 0;
             msh->cells[i]->cellFDP.rv = 0;
             msh->cells[i]->cellFDP.rw = 0;
-            msh->cells[i]->cellFDP.gamma = 1.4;
+            msh->cells[i]->cellFDP.gamma = 5.0/3;
 
-            msh->cells[i]->cellFDP.P = 1;
-            msh->cells[i]->cellFDP.rE = CellFluidDynamicsProps::calc_rE(1,1,0,0,0,1.4);
+            msh->cells[i]->cellFDP.P = 3;
+            msh->cells[i]->cellFDP.rE = CellFluidDynamicsProps::calc_rE(1,3,0,0,0,5.0/3);
         }
         else
         {
-            msh->cells[i]->cellFDP.ro = 0.125;
+            msh->cells[i]->cellFDP.ro = 1;
             msh->cells[i]->cellFDP.ru = 0;
             msh->cells[i]->cellFDP.rv = 0;
             msh->cells[i]->cellFDP.rw = 0;
-            msh->cells[i]->cellFDP.gamma = 1.4;
+            msh->cells[i]->cellFDP.gamma = 5.0/3;
 
-            msh->cells[i]->cellFDP.P = 0.1;
-            msh->cells[i]->cellFDP.rE = CellFluidDynamicsProps::calc_rE(0.125,0.1,0,0,0,1.4);
+            msh->cells[i]->cellFDP.P = 1;
+            msh->cells[i]->cellFDP.rE = CellFluidDynamicsProps::calc_rE(1,1,0,0,0,5.0/3);
         }
 	}
 
@@ -721,7 +721,7 @@ void FVM_TVD_IMPLICIT::run()
 			solverMtx->addMatrElement(c1, c1, A_plus);
 		}
 
-
+        /*
 		for(Mesh::BndFaceIterator it = msh->beginBndFace(&(msh->bnd_faces), &bndInletNames), ite = msh->endBndFace(&(msh->bnd_faces), &bndInletNames); it != ite; ++it)
 		{
 			c1 = it->c[0]->index;
@@ -791,7 +791,7 @@ void FVM_TVD_IMPLICIT::run()
 
 			solverMtx->addMatrElement(c1, c1, A_plus);
 		}
-
+        */
 
 
 		for(Mesh::FaceIterator it = msh->beginInnerFace(), ite = msh->endInnerFace(); it != ite; ++it)
