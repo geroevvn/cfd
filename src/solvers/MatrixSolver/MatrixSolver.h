@@ -35,7 +35,7 @@ public:
 
 	virtual void setMatrElement(int i, int j, double** matrDim);
 	virtual void setRightElement(int i, double* vectDim);
-	void set_right(double* new_b);
+	virtual void set_right(double* new_b);
 
     CSRMatrix* get_CSR_instance();
 	virtual void addMatrElement(int i, int j, double** matrDim);

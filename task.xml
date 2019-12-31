@@ -13,11 +13,11 @@
 		  <step value="500" />
 		  <max_limited_cells value="30" />
         </CFL>
-		<TAU 			value="2.0e-4" />		<!-- шаг по времени, используется меньшее значение из этого или из полученного из числа Куранта -->
-		<TMAX 			value="36" />			<!-- время, до которго выполняется расчет -->
+		<TAU 			value="1.0e-6" />		<!-- шаг по времени, используется меньшее значение из этого или из полученного из числа Куранта -->
+		<TMAX 			value="15" />			<!-- время, до которго выполняется расчет -->
                 <STEP_MAX value="100000000" />
-                <FILE_OUTPUT_STEP 	value="1000" />            <!-- количество итераций, через которые выполняется вывод результатов в файл -->
-		<LOG_OUTPUT_STEP 	value="100" />          <!-- интервал вывода краткой информации в лог-файл -->
+                <FILE_OUTPUT_STEP 	value="100" />            <!-- количество итераций, через которые выполняется вывод результатов в файл -->
+		<LOG_OUTPUT_STEP 	value="1" />          <!-- интервал вывода краткой информации в лог-файл -->
                 <FLUX value="GODUNOV" /> <!-- LAX, GODUNOV -->
                 <TURBULENCE_MODEL value="K_EPS" />
 	</control>
@@ -32,7 +32,7 @@
         </limits>
 	<mesh>
 		<fileType value="GMSH_UNV" />
-		<name value="SOD_TASK.unv" />                      <!-- имя файлов с данными сетки -->
+		<name value="RAE2822.unv" />                      <!-- имя файлов с данными сетки -->
 	</mesh>
 	<materials count="1">
 		<material id="0">
@@ -52,48 +52,54 @@
 			<material id="0" />
 			<parameters>
 
-				<ro value="1.4" />
-				<Vx value="0" /> 			<!-- первая компонента скорости              -->
-               			<Vy value="0" /> 			<!-- вторая компонента                       -->
-               			<Vz value="3" /> 			<!-- вторая компонента                       &ndash;&gt;-->
-               			<P value="1" /> 					
+				<ro1 value="1.4" />
+				<Vx1 value="0" /> 			<!-- первая компонента скорости              -->
+               			<Vy1 value="0" /> 			<!-- вторая компонента                       -->
+               			<Vz1 value="3" /> 			<!-- вторая компонента                       &ndash;&gt;-->
+               			<P1 value="1" /> 					
 
-				<ro1 value="0.43567" />
-				<Vx1 value="219.521" /> 			<!-- первая компонента скорости              -->
-               			<Vy1 value="8.85526" /> 			<!-- вторая компонента                       -->
-               			<Vz1 value="0" /> 			<!-- вторая компонента                       &ndash;&gt;-->
-               			<P1 value="28263.7" /> 			<!-- давление                                -->
+				<ro value="0.43567" />
+				<Vx value="219.521" /> 			<!-- первая компонента скорости              -->
+               			<Vy value="8.85526" /> 			<!-- вторая компонента                       -->
+               			<Vz value="0" /> 			<!-- вторая компонента                       &ndash;&gt;-->
+               			<P value="28263.7" /> 			<!-- давление                                -->
 			</parameters>
 		</region>
 	</regions>
 
 	<boundaries count="3">
+		
+		
+	
+
 		<boundCond FaceType="1">
 			<name>INLET</name>
 			<type>BOUND_INLET</type>
 			<parameters>
 
-				<ro value="1.4" />
-				<Vx value="0" /> 			<!-- первая компонента скорости              -->
-               			<Vy value="0" /> 			<!-- вторая компонента                       -->
-               			<Vz value="3" /> 			<!-- вторая компонента                       &ndash;&gt;-->
-               			<P value="1" /> 
+				<ro1 value="1.4" />
+				<Vx1 value="0" /> 			<!-- первая компонента скорости              -->
+               			<Vy1 value="0" /> 			<!-- вторая компонента                       -->
+               			<Vz1 value="3" /> 			<!-- вторая компонента                       &ndash;&gt;-->
+               			<P1 value="1" /> 
 
-				<ro1 value="0.43567" />
-				<Vx1 value="219.521" /> 			<!-- первая компонента скорости              -->
-               			<Vy1 value="8.85526" /> 			<!-- вторая компонента                       -->
-               			<Vz1 value="0" /> 			<!-- вторая компонента                       &ndash;&gt;-->
-               			<P1 value="28263.7" /> 			<!-- давление              	<!-- давление                                -->
+				<ro value="0.43567" />
+				<Vx value="219.521" /> 			<!-- первая компонента скорости              -->
+               			<Vy value="8.85526" /> 			<!-- вторая компонента                       -->
+               			<Vz value="0" /> 			<!-- вторая компонента                       &ndash;&gt;-->
+               			<P value="28263.7" /> 			<!-- давление              	<!-- давление                                -->
 			</parameters>
 		</boundCond>
 		<boundCond FaceType="2">
 			<name>OUTLET</name>
 			<type>BOUND_OUTLET</type>
 		</boundCond>
+
 		<boundCond FaceType="3">
 			<name>WALL</name>
 			<type>BOUND_WALL</type>
 		</boundCond>
+		
 						
 
 	</boundaries>

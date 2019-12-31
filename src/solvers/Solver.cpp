@@ -25,7 +25,7 @@ Method* Solver::initMethod(char* fileName)
 		if (!loadOkay)
 		{
 			Logger::Instance()->logging()->error("Failed to open file : \"%s\"", fileName);
-			cout << doc.ErrorDesc();
+			//cout << doc.ErrorDesc();
 			Logger::Instance()->EXIT(doc.ErrorId());
 		}
 
@@ -50,7 +50,7 @@ Method* Solver::initMethod(char* fileName)
 
 		m->init(fileName);
 	}
-    //cout << "AAAAA";
+
 	Parallel::b_cast_int_buff( Parallel::get_root_rank(), 1, &num_of_method );
 
 	if( Parallel::rank != Parallel::get_root_rank() )
@@ -73,7 +73,7 @@ void Solver::runMethod(Method* m)
 	}
 	else
 	{
-		m->parallel_run();
+		m->parallel_run_hypre();
 	}
 }
 

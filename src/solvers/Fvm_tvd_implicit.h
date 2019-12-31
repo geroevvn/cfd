@@ -60,6 +60,7 @@ private:
 
         int check_bnd_cond();
         void clear5(double**);
+        void clear_vec(double*);
         double** allocate_mem();
         void free_mem(double**);
         void matrix_A(double**, double**, double*, double**, int);

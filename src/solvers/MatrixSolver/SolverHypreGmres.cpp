@@ -36,15 +36,15 @@ int SolverHypreGmres::solve(double eps, int& maxIter)
 	HYPRE_IJVectorAssemble(xx);
 
    // printToFile("A2.txt");
-     printf("Assemble : %d\n",clock() - start);
+    // printf("Assemble : %d\n",clock() - start);
 	/* Get the parcsr matrix object to use */
 	HYPRE_IJMatrixGetObject(A, (void**)&parcsr_A);
 	HYPRE_IJVectorGetObject(bb, (void **)&par_bb);
 	HYPRE_IJVectorGetObject(xx, (void **)&par_xx);
 
-    maxIter = 150;
-//    HYPRE_IJMatrixPrint(A, "IJ.out.A");
-//    HYPRE_IJVectorPrint(bb, "IJ.out.b");exit(0);
+    maxIter = 300;
+  // HYPRE_IJMatrixPrint(A, "IJ.out.A");
+    HYPRE_IJVectorPrint(bb, "IJ.out.b");
     //maxIter = 300;
 	/* Choose a solver and solve the system */
 
@@ -56,8 +56,8 @@ int SolverHypreGmres::solve(double eps, int& maxIter)
 		HYPRE_ParCSRGMRESCreate(MPI_COMM_WORLD, &solver);
 
 		/* Set some parameters (See Reference Manual for more parameters) */
-		HYPRE_GMRESSetSkipRealResidualCheck(solver, 1);
-		HYPRE_GMRESSetKDim(solver,			KRYLOV_DIM);
+		//HYPRE_GMRESSetSkipRealResidualCheck(solver, 1);
+		//HYPRE_GMRESSetKDim(solver,			KRYLOV_DIM);
 		HYPRE_GMRESSetMaxIter(solver,		maxIter);			/* max iterations */
 		HYPRE_GMRESSetTol(solver,			eps);				/* conv. tolerance */
 		HYPRE_GMRESSetAbsoluteTol(solver,	0.0);
@@ -67,7 +67,7 @@ int SolverHypreGmres::solve(double eps, int& maxIter)
 		/* Now setup and solve! */
 		HYPRE_ParCSRGMRESSetup(solver, parcsr_A, par_bb, par_xx);
 		HYPRE_ParCSRGMRESSolve(solver, parcsr_A, par_bb, par_xx);
-       printf("Solving : %d\n",clock() - start);
+       //printf("Solving : %d\n",clock() - start);
 
 		/* Run info - needed logging turned on */
 
@@ -106,10 +106,26 @@ int SolverHypreGmres::solve(double eps, int& maxIter)
 	}
 
 
+     static int q = 0;
+     if(++q == 84)
+    {
+    exit(0);
+    }
+
+    HYPRE_IJVectorPrint(xx, "IJ.out.x");
+    exit(0);
+
+
+
+
+
 	delete [] rows;
 
     //start = clock();
-    gather_and_b_cast();
+    if(Parallel::size > 1)
+    {
+        gather_and_b_cast();
+    }
     // printf("Gather : %d\n",clock() - start);
 
 	return result;

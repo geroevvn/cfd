@@ -86,7 +86,7 @@ void SolverHypre::init(int cellsCount, int blockDimension)
         x_root = new double[n];
     }
 
-    init_only_matr(cellsCount, blockDimension);
+    //init_only_matr(cellsCount, blockDimension);
 	initMatrVectors();
 }
 
@@ -109,9 +109,9 @@ void SolverHypre::zero() {
 	HYPRE_IJVectorInitialize(xx);
 
 
-	MatrixSolver::zero_only_matr();
+	//MatrixSolver::zero_only_matr();
 
-        memset(x, 0, n*sizeof(double));
+    memset(x, 0, n*sizeof(double));
 }
 
 SolverHypre::~SolverHypre()
@@ -230,6 +230,7 @@ void SolverHypre::printToFile(const char* fileName)
 	delete[] x;
 	delete[] cols;
 }
+
 
 
 void SolverHypre::init_hypre(double* v)

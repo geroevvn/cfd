@@ -7,6 +7,8 @@
 
 #include "SolverZeidel.h"
 #include <algorithm>
+#include <fstream>
+using namespace std;
 
 int SolverZeidel::solve(double eps, int& maxIter)
 {
@@ -50,7 +52,28 @@ int SolverZeidel::solve(double eps, int& maxIter)
 		//int qqqqq = 0; // ZHRV_WARN
 		//printf("SEIDEL SOLVER: step = %5d\terr = %16.8e\n", step, err);
 	}
+    /*
+	ofstream fout("VEC_B.txt");
 
+    for(int i = 0; i < a->n; i++)
+    {
+        fout << i << " : " << b[i] << endl;
+    }
+
+    fout.close();
+
+
+    ofstream fout1("VEC_X.txt");
+
+    for(int i = 0; i < a->n; i++)
+    {
+        fout1 << i << " : " << x[i] << endl;
+    }
+
+    fout1.close();
+
+    exit(0);
+    */
 	if (step >= maxIter)
 	{	//std::cout << err << std::endl;
 		//log("ZEIDEL_SOLVER: (warning) maximum iterations done (%d); error: %e\n", step, err);

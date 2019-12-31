@@ -299,6 +299,11 @@ void FVM_TVD_IMPLICIT::clear5(double** matrix)
 	}
 }
 
+void FVM_TVD_IMPLICIT::clear_vec(double* vec)
+{
+    memset(vec, 0, 5 * sizeof(double));
+}
+
 double** FVM_TVD_IMPLICIT::allocate_mem()
 {
 	double** matrix = new double*[5];
@@ -399,6 +404,14 @@ void FVM_TVD_IMPLICIT::left_eigen_vecs(double** left_eigen_vecs, double u, doubl
 	left_eigen_vecs[2][0] = (c_2 - g_q_2)*n.x + c*(w*n.y - v*n.z);	left_eigen_vecs[2][1] = g_1*u*n.x;					left_eigen_vecs[2][2] = g_1*v*n.x + c*n.z;			left_eigen_vecs[2][3] = g_1*w*n.x - c*n.y;			left_eigen_vecs[2][4] = -g_1 * n.x;
 	left_eigen_vecs[3][0] = (c_2 - g_q_2)*n.y + c*(u*n.z - w*n.x);	left_eigen_vecs[3][1] = g_1*u*n.y - c*n.z;			left_eigen_vecs[3][2] = g_1*v*n.y;					left_eigen_vecs[3][3] = g_1*w*n.y + c*n.x;			left_eigen_vecs[3][4] = -g_1 * n.y;
 	left_eigen_vecs[4][0] = (c_2 - g_q_2)*n.z + c*(v*n.x - u*n.y);	left_eigen_vecs[4][1] = g_1*u*n.z + c*n.y;			left_eigen_vecs[4][2] = g_1*v*n.z - c*n.x;			left_eigen_vecs[4][3] = g_1*w*n.z;					left_eigen_vecs[4][4] = -g_1 * n.z;
+
+    for(int i = 0; i < 5; i++)
+	{
+		for(int j = 0; j < 5; j++)
+		{
+			left_eigen_vecs[i][j] /= c_2;
+		}
+	}
 }
 
 void FVM_TVD_IMPLICIT::right_eigen_vecs(double** right_eigen_vecs, double u, double v, double w, double c, double H, const Point& n)
@@ -412,14 +425,6 @@ void FVM_TVD_IMPLICIT::right_eigen_vecs(double** right_eigen_vecs, double u, dou
 	right_eigen_vecs[2][0] = v - c*n.y;		right_eigen_vecs[2][1] = v + c*n.y;		right_eigen_vecs[2][2] = v*n.x + c*n.z;						right_eigen_vecs[2][3] = v*n.y;								right_eigen_vecs[2][4] = v*n.z - c*n.x;
 	right_eigen_vecs[3][0] = w - c*n.z;		right_eigen_vecs[3][1] = w + c*n.z;		right_eigen_vecs[3][2] = w*n.x - c*n.y;						right_eigen_vecs[3][3] = w*n.y + c*n.x;						right_eigen_vecs[3][4] = w*n.z;
 	right_eigen_vecs[4][0] = H - c*vel_n;	right_eigen_vecs[4][1] = H + c*vel_n;	right_eigen_vecs[4][2] = 0.5*q_2*n.x + c*(v*n.z - w*n.y);	right_eigen_vecs[4][3] = 0.5*q_2*n.y + c*(w*n.x - u*n.z);	right_eigen_vecs[4][4] = 0.5*q_2*n.z + c*(u*n.y - v*n.x);
-
-	for(int i = 0; i < 5; i++)
-	{
-		for(int j = 0; j < 5; j++)
-		{
-			right_eigen_vecs[i][j] /= c_2;
-		}
-	}
 }
 
 void FVM_TVD_IMPLICIT::matrix_A(double** A, double** right_eigen_vecs, double* eigen_val_mat, double** left_eigen_vecs, const int SIGN)
@@ -563,7 +568,7 @@ void FVM_TVD_IMPLICIT::run()
 			V = it->V;
 		}
 	}
-
+    /*
 	std::cout << V /TAU << std::endl;
 
 	for(int i = 0; i < msh->cells.size(); i++)
@@ -595,11 +600,11 @@ void FVM_TVD_IMPLICIT::run()
             msh->cells[i]->cellFDP.rE = CellFluidDynamicsProps::calc_rE(1,1,0,0,0,5.0/3);
         }
 	}
-
+    */
 
 	double t = 0;
 	int step = 0;
-	double eps = 1E-5;
+	double eps = 1E-7;
 	int max_iter = 100;
 
 
@@ -635,6 +640,7 @@ void FVM_TVD_IMPLICIT::run()
 
 	int ic, oc, c1, c2;
 	Point pc;
+
 
 	Logger::Instance()->logging()->info("Matrix structure initialization");
 
@@ -721,7 +727,7 @@ void FVM_TVD_IMPLICIT::run()
 			solverMtx->addMatrElement(c1, c1, A_plus);
 		}
 
-        /*
+
 		for(Mesh::BndFaceIterator it = msh->beginBndFace(&(msh->bnd_faces), &bndInletNames), ite = msh->endBndFace(&(msh->bnd_faces), &bndInletNames); it != ite; ++it)
 		{
 			c1 = it->c[0]->index;
@@ -791,7 +797,7 @@ void FVM_TVD_IMPLICIT::run()
 
 			solverMtx->addMatrElement(c1, c1, A_plus);
 		}
-        */
+
 
 
 		for(Mesh::FaceIterator it = msh->beginInnerFace(), ite = msh->endInnerFace(); it != ite; ++it)
@@ -910,7 +916,7 @@ void FVM_TVD_IMPLICIT::run()
 
 	}
 
-    save(1);
+    save(step);
     Logger::Instance()->logging()->info("complete...");
 
 
@@ -2012,6 +2018,39 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 
 	if( Parallel::is_root() )
 	{
+
+        for(int i = 0; i < msh->cells.size(); i++)
+        {
+        Point po;
+        po.x = msh->cells[i]->center.x;
+        cout <<  i<< " : " << po.x << endl;
+        //if(po.x < 0.5) exit(0);
+        if(po.x < 0.5)
+        {
+            msh->cells[i]->cellFDP.ro = 1;
+            msh->cells[i]->cellFDP.ru = 0;
+            msh->cells[i]->cellFDP.rv = 0;
+            msh->cells[i]->cellFDP.rw = 0;
+            msh->cells[i]->cellFDP.gamma = 5.0/3;
+
+            msh->cells[i]->cellFDP.P = 3;
+            msh->cells[i]->cellFDP.rE = CellFluidDynamicsProps::calc_rE(1,3,0,0,0,5.0/3);
+        }
+        else
+        {
+            msh->cells[i]->cellFDP.ro = 1;
+            msh->cells[i]->cellFDP.ru = 0;
+            msh->cells[i]->cellFDP.rv = 0;
+            msh->cells[i]->cellFDP.rw = 0;
+            msh->cells[i]->cellFDP.gamma = 5.0/3;
+
+            msh->cells[i]->cellFDP.P = 1;
+            msh->cells[i]->cellFDP.rE = CellFluidDynamicsProps::calc_rE(1,1,0,0,0,5.0/3);
+        }
+        }
+
+
+
 		Logger::Instance()->logging()->info("TMAX = %e STEP_MAX = %d", TMAX, STEP_MAX);
         time_start = clock();
 
@@ -2032,7 +2071,7 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
         ind_vector_faces.resize( Parallel::size );
 
         solverMtx->init(nc, 5);
-
+        /*
         CSRMatrix::DELTA = 65536;
 
         for(Mesh::FaceIterator it = msh->beginFace(), ite = msh->endFace(); it != ite; ++it)
@@ -2066,6 +2105,9 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
         right5_root = new double[ 5*nc ];
 
         Logger::Instance()->logging()->info("Identification sizes of arrays");
+        */
+
+        //right5_root = new double[ 5*nc ];
 
         int cnt_of_bnd_faces = 0;
         for(Mesh::BndFaceIterator it = msh->beginBndFace(&(msh->bnd_faces), &bndWallNames), ite = msh->endBndFace(&(msh->bnd_faces), &bndWallNames); it != ite; ++it)
@@ -2223,16 +2265,17 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 	}
     else
     {
+
         Parallel::recv(Parallel::get_root_rank(), 1, 1, &nc);
 
         solverMtx->init(nc, 5);
-
+        /*
         Parallel::recv(Parallel::get_root_rank(), 1, 1, &solverMtx->get_CSR_instance()->na);
         solverMtx->get_CSR_instance()->allocate_mem();
 
         Parallel::recv(Parallel::get_root_rank(), 1, solverMtx->get_CSR_instance()->na, solverMtx->get_CSR_instance()->ja);
         Parallel::recv(Parallel::get_root_rank(), 1, solverMtx->get_CSR_instance()->n + 1, solverMtx->get_CSR_instance()->ia);
-
+        */
 
 
         Parallel::recv(Parallel::get_root_rank(), 1, 1, &fc_rank);
@@ -2263,7 +2306,8 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 
 
 
-    right5_rank = new double[ 5*nc ];
+    //right5_rank = new double[ 5*nc ];
+    right5_rank = new double[ 5 ];
 
     ro_out = new double[fc_rank];
     ru_out = new double[fc_rank];
@@ -2379,8 +2423,7 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 		t += TAU;
 		step++;
 
-        memset(right5_rank, 0, 5 * sizeof(double));
-
+        //memset(right5_rank, 0, 5 * sizeof(double));
 
         solverMtx->zero();
 
@@ -2389,12 +2432,14 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
         {
             time_start = clock();
 
+
             for(Mesh::BndFaceIterator it = msh->beginBndFace(&(msh->bnd_faces), &bndWallNames), ite = msh->endBndFace(&(msh->bnd_faces), &bndWallNames); it != ite; ++it)
             {
                 c1 = it->c[0]->index;
 
                 it->faceFDP.ro = it->c[0]->cellFDP.ro;
                 it->faceFDP.rE = it->c[0]->cellFDP.rE;
+                it->faceFDP.P = it->c[0]->cellFDP.P;
                 it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
 
                 double rvel_n = it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z;
@@ -2409,8 +2454,8 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 
                 for(int i = 0; i < 5; i++)
                 {
-                    right5_rank[ 5*c1 + i ] -= Flux[i] * it->S;
-                    //right5_rank[ i ] = -Flux[i] * it->S;
+                    //right5_rank[ 5*c1 + i ] -= Flux[i] * it->S;
+                    right5_rank[ i ] = -Flux[i] * it->S;
                 }
 
                 CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, it->c[0]->cellFDP, it->faceFDP);
@@ -2431,7 +2476,7 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 
                 solverMtx->addMatrElement(c1, c1, A_plus);
 
-              //  solverMtx->addRightElement(c1, right5_rank);
+                solverMtx->addRightElement(c1, right5_rank);
             }
 
 
@@ -2443,8 +2488,8 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 
                 for(int i = 0; i < 5; i++)
                 {
-                    right5_rank[ 5*c1 + i ] -= Flux[i] * it->S;
-                    //right5_rank[ i ] = -Flux[i] * it->S;
+                    //right5_rank[ 5*c1 + i ] -= Flux[i] * it->S;
+                    right5_rank[ i ] = -Flux[i] * it->S;
                 }
 
                 CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, it->c[0]->cellFDP, it->faceFDP);
@@ -2465,7 +2510,7 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 
                 solverMtx->addMatrElement(c1, c1, A_plus);
 
-               // solverMtx->addRightElement(c1, right5_rank);
+                solverMtx->addRightElement(c1, right5_rank);
             }
 
 
@@ -2477,6 +2522,7 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
                 it->faceFDP.ru = it->c[0]->cellFDP.ru;
                 it->faceFDP.rv = it->c[0]->cellFDP.rv;
                 it->faceFDP.rw = it->c[0]->cellFDP.rw;
+                it->faceFDP.P = it->c[0]->cellFDP.P;
                 it->faceFDP.rE = it->c[0]->cellFDP.rE;
                 it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
 
@@ -2484,8 +2530,8 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 
                 for(int i = 0; i < 5; i++)
                 {
-                    right5_rank[ 5*c1 + i ] -= Flux[i] * it->S;
-                    //right5_rank[ i ] = -Flux[i] * it->S;
+                    //right5_rank[ 5*c1 + i ] -= Flux[i] * it->S;
+                    right5_rank[ i ] = -Flux[i] * it->S;
                 }
 
                 CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, it->c[0]->cellFDP, it->faceFDP);
@@ -2506,7 +2552,7 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 
                 solverMtx->addMatrElement(c1, c1, A_plus);
 
-               // solverMtx->addRightElement(c1, right5_rank);
+                solverMtx->addRightElement(c1, right5_rank);
             }
 
             Face* f;
@@ -2524,12 +2570,27 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 
                 for(int i = 0; i < 5; i++)
                 {
-                    right5_rank[ 5*c1 + i] -= Flux[i] * f->S;
-                    right5_rank[ 5*c2 + i] += Flux[i] * f->S;
+                   // right5_rank[ 5*c1 + i] -= Flux[i] * f->S;
+                   // right5_rank[ 5*c2 + i] += Flux[i] * f->S;
 
-                   //right5_rank[ i] = -Flux[i] * f->S;
+                   right5_rank[ i ] = -Flux[i] * f->S;
                    //right5_rank_temp[ i] = Flux[i] * f->S;
                 }
+
+                solverMtx->addRightElement(c1, right5_rank);
+
+                for(int i = 0; i < 5; i++)
+                {
+                   // right5_rank[ 5*c1 + i] -= Flux[i] * f->S;
+                   // right5_rank[ 5*c2 + i] += Flux[i] * f->S;
+
+                   right5_rank[ i ] = Flux[i] * f->S;
+                   //right5_rank_temp[ i] = Flux[i] * f->S;
+                }
+
+                solverMtx->addRightElement(c2, right5_rank);
+
+
 
                 CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, f->c[0]->cellFDP, f->c[1]->cellFDP);
 
@@ -2577,9 +2638,6 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 
                 solverMtx->addMatrElement(c2, c2, A_plus);
                 solverMtx->addMatrElement(c2, c1, A_minus);
-
-               // solverMtx->addRightElement(c1, right5_rank);
-                //solverMtx->addRightElement(c2, right5_rank_temp);
             }
 
         }
@@ -2615,14 +2673,25 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 
                 for(int j = 0; j < 5; j++)
                 {
+                   // right5_rank[ 5*c1 + i] -= Flux[i] * f->S;
+                   // right5_rank[ 5*c2 + i] += Flux[i] * f->S;
 
-                    right5_rank[ 5*c1 + j ] -= Flux[j] * S[i];
-                    right5_rank[ 5*c2 + j ] += Flux[j] * S[i];
-
-
-                    //right5_rank[ j ] = -Flux[j] * S[i];
-                    //right5_rank_temp[j ] =  Flux[j] * S[i];
+                   right5_rank[ j ] = -Flux[j] * S[i];
+                   //right5_rank_temp[ i] = Flux[i] * f->S;
                 }
+
+                solverMtx->addRightElement(c1, right5_rank);
+
+                for(int j = 0; j < 5; j++)
+                {
+                   // right5_rank[ 5*c1 + i] -= Flux[i] * f->S;
+                   // right5_rank[ 5*c2 + i] += Flux[i] * f->S;
+
+                   right5_rank[ j ] = Flux[j] * S[i];
+                   //right5_rank_temp[ i] = Flux[i] * f->S;
+                }
+
+                solverMtx->addRightElement(c2, right5_rank);
 
                 CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, cfdp1, cfdp2);
 
@@ -2670,26 +2739,23 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 
                 solverMtx->addMatrElement(c2, c2, A_plus);
                 solverMtx->addMatrElement(c2, c1, A_minus);
-
-              //  solverMtx->addRightElement(c1, right5_rank);
-               // solverMtx->addRightElement(c2, right5_rank_temp);
             }
         }
 
-        Parallel::reduce_sum(solverMtx->get_CSR_instance()->a, a_root, solverMtx->get_CSR_instance()->na, Parallel::get_root_rank());
-        Parallel::reduce_sum(right5_rank, right5_root, 5 * nc, Parallel::get_root_rank());
+        //Parallel::reduce_sum(solverMtx->get_CSR_instance()->a, a_root, solverMtx->get_CSR_instance()->na, Parallel::get_root_rank());
+        //Parallel::reduce_sum(right5_rank, right5_root, 5 * nc, Parallel::get_root_rank());
 
 
         if( Parallel::is_root() )
         {
-
+            /*
             for(int i = 0; i < 5*nc; i++)
             {
                 right5_rank[i] = right5_root[i];
             }
-
+            */
             //solverMtx->set_right(right5_root);
-            solverMtx->get_CSR_instance()->set_a( a_root );
+            //solverMtx->get_CSR_instance()->set_a( a_root );
 
             for(Mesh::CellIterator it = msh->beginCell(), ite = msh->endCell(); it != ite; ++it)
             {
@@ -2706,10 +2772,10 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
         }
 
 
-        Parallel::b_cast_double_buff(Parallel::get_root_rank(), solverMtx->get_CSR_instance()->na, solverMtx->get_CSR_instance()->a);
-        Parallel::b_cast_double_buff(Parallel::get_root_rank(), 5 * nc, right5_rank);
+       // Parallel::b_cast_double_buff(Parallel::get_root_rank(), solverMtx->get_CSR_instance()->na, solverMtx->get_CSR_instance()->a);
+       // Parallel::b_cast_double_buff(Parallel::get_root_rank(), 5 * nc, right5_rank);
 
-        solverMtx->init_hypre(right5_rank);
+       // solverMtx->init_hypre(right5_rank);
                //solverMtx->printToFile("A1.txt");
        // int start = clock();
         solveErr = solverMtx->solve(eps, max_iter);
@@ -2785,17 +2851,13 @@ void FVM_TVD_IMPLICIT::parallel_run_hypre()
 	}
 
 
+    get_all_cells_on_root(inds_cells_root, ind_cell_out, ind_cell_in, ro_out, ru_out, rv_out, rw_out, rE_out, P_out, ro_in, ru_in, rv_in, rw_in, rE_in, P_in, fc_rank);
 
 	if( Parallel::is_root() )
     {
-        get_all_cells_on_root(inds_cells_root, ind_cell_out, ind_cell_in, ro_out, ru_out, rv_out, rw_out, rE_out, P_out, ro_in, ru_in, rv_in, rw_in, rE_in, P_in, fc_rank);
-        save(1);
+        save(step);
         Logger::Instance()->logging()->info("complete...");
     }
-	else
-	{
-		get_all_cells_on_root(inds_cells_root, ind_cell_out, ind_cell_in, ro_out, ru_out, rv_out, rw_out, rE_out, P_out, ro_in, ru_in, rv_in, rw_in, rE_in, P_in, fc_rank);
-	}
 
 	if( !Parallel::is_root() )
 	{
