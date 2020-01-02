@@ -1,64 +1,126 @@
-1577869467 INFO  : Parsing block 2411 ( UNV Reader )
-1577869467 INFO  : Time : 90000 ticks
-1577869467 INFO  : Parsing block 2412 ( UNV Reader )
-1577869467 INFO  : Time : 220000 ticks
-1577869467 INFO  : Parsing block 2477 ( UNV Reader )
-1577869467 INFO  : Time : 30000 ticks
-1577869467 INFO  : Creating Mesh
-1577869468 INFO  : Time : 770000 ticks
-1577869468 INFO  : Calculating geometry of Mesh
-1577869468 INFO  : Time : 40000 ticks
-1577869468 INFO  : TMAX = 1.500000e+01 STEP_MAX = 100000000
-1577869468 INFO  : Matrix structure initialization
-1577869469 INFO  : complete...
-1577869469 INFO  : Solving the equation (FVM_TVD_IMPLICIT) 
-1577869567 INFO  : step : 100	time step : 0.0001000000000000	 max iter: 100	time: 1020000 ticks
-1577869658 INFO  : step : 200	time step : 0.0002000000000000	 max iter: 100	time: 870000 ticks
-1577869749 INFO  : step : 300	time step : 0.0003000000000000	 max iter: 100	time: 990000 ticks
-1577869839 INFO  : step : 400	time step : 0.0004000000000000	 max iter: 100	time: 870000 ticks
-1577869926 INFO  : step : 500	time step : 0.0005000000000000	 max iter: 100	time: 860000 ticks
-1577870013 INFO  : step : 600	time step : 0.0006000000000000	 max iter: 100	time: 860000 ticks
-1577870100 INFO  : step : 700	time step : 0.0007000000000000	 max iter: 100	time: 860000 ticks
-1577870187 INFO  : step : 800	time step : 0.0008000000000000	 max iter: 100	time: 860000 ticks
-1577870278 INFO  : step : 900	time step : 0.0009000000000000	 max iter: 100	time: 1000000 ticks
-1577870365 INFO  : step : 1000	time step : 0.0010000000000000	 max iter: 100	time: 860000 ticks
-1577870452 INFO  : step : 1100	time step : 0.0011000000000000	 max iter: 100	time: 860000 ticks
-1577870541 INFO  : step : 1200	time step : 0.0012000000000000	 max iter: 100	time: 860000 ticks
-1577870631 INFO  : step : 1300	time step : 0.0013000000000000	 max iter: 100	time: 860000 ticks
-1577870719 INFO  : step : 1400	time step : 0.0014000000000000	 max iter: 100	time: 870000 ticks
-1577870813 INFO  : step : 1500	time step : 0.0015000000000000	 max iter: 100	time: 870000 ticks
-1577870903 INFO  : step : 1600	time step : 0.0016000000000000	 max iter: 100	time: 860000 ticks
-1577870989 INFO  : step : 1700	time step : 0.0017000000000000	 max iter: 100	time: 860000 ticks
-1577871079 INFO  : step : 1800	time step : 0.0017999999999999	 max iter: 100	time: 1000000 ticks
-1577871167 INFO  : step : 1900	time step : 0.0018999999999999	 max iter: 100	time: 870000 ticks
-1577871256 INFO  : step : 2000	time step : 0.0019999999999999	 max iter: 100	time: 970000 ticks
-1577871341 INFO  : step : 2100	time step : 0.0021000000000000	 max iter: 100	time: 840000 ticks
-1577871427 INFO  : step : 2200	time step : 0.0022000000000000	 max iter: 100	time: 840000 ticks
-1577871517 INFO  : step : 2300	time step : 0.0023000000000000	 max iter: 100	time: 980000 ticks
-1577871607 INFO  : step : 2400	time step : 0.0024000000000000	 max iter: 100	time: 840000 ticks
-1577871695 INFO  : step : 2500	time step : 0.0025000000000000	 max iter: 100	time: 980000 ticks
-1577871788 INFO  : step : 2600	time step : 0.0026000000000000	 max iter: 100	time: 840000 ticks
-1577871876 INFO  : step : 2700	time step : 0.0027000000000000	 max iter: 100	time: 940000 ticks
-1577871960 INFO  : step : 2800	time step : 0.0028000000000000	 max iter: 100	time: 820000 ticks
-1577872044 INFO  : step : 2900	time step : 0.0029000000000001	 max iter: 100	time: 820000 ticks
-1577872127 INFO  : step : 3000	time step : 0.0030000000000001	 max iter: 100	time: 830000 ticks
-1577872209 INFO  : step : 3100	time step : 0.0031000000000001	 max iter: 100	time: 820000 ticks
-1577872295 INFO  : step : 3200	time step : 0.0032000000000001	 max iter: 100	time: 820000 ticks
-1577872377 INFO  : step : 3300	time step : 0.0033000000000001	 max iter: 100	time: 820000 ticks
-1577872460 INFO  : step : 3400	time step : 0.0034000000000001	 max iter: 100	time: 950000 ticks
-1577872547 INFO  : step : 3500	time step : 0.0035000000000001	 max iter: 100	time: 950000 ticks
-1577872635 INFO  : step : 3600	time step : 0.0036000000000002	 max iter: 100	time: 920000 ticks
-1577872720 INFO  : step : 3700	time step : 0.0037000000000002	 max iter: 100	time: 850000 ticks
-1577872806 INFO  : step : 3800	time step : 0.0038000000000002	 max iter: 100	time: 950000 ticks
-1577872891 INFO  : step : 3900	time step : 0.0039000000000002	 max iter: 100	time: 820000 ticks
-1577872978 INFO  : step : 4000	time step : 0.0040000000000002	 max iter: 100	time: 820000 ticks
-1577873066 INFO  : step : 4100	time step : 0.0041000000000002	 max iter: 100	time: 850000 ticks
-1577873151 INFO  : step : 4200	time step : 0.0042000000000002	 max iter: 100	time: 830000 ticks
-1577873235 INFO  : step : 4300	time step : 0.0043000000000002	 max iter: 100	time: 830000 ticks
-1577873318 INFO  : step : 4400	time step : 0.0044000000000003	 max iter: 100	time: 820000 ticks
-1577873403 INFO  : step : 4500	time step : 0.0045000000000003	 max iter: 100	time: 820000 ticks
-1577873485 INFO  : step : 4600	time step : 0.0046000000000003	 max iter: 100	time: 820000 ticks
-1577873568 INFO  : step : 4700	time step : 0.0047000000000003	 max iter: 100	time: 820000 ticks
-1577873650 INFO  : step : 4800	time step : 0.0048000000000003	 max iter: 100	time: 820000 ticks
-1577873732 INFO  : step : 4900	time step : 0.0049000000000003	 max iter: 100	time: 820000 ticks
-1577873815 INFO  : step : 5000	time step : 0.0050000000000003	 max iter: 100	time: 820000 ticks
+1577971089 INFO  : Parsing block 2411 ( UNV Reader )
+1577971090 INFO  : Time : 60000 ticks
+1577971090 INFO  : Parsing block 2412 ( UNV Reader )
+1577971090 INFO  : Time : 110000 ticks
+1577971090 INFO  : Parsing block 2477 ( UNV Reader )
+1577971090 INFO  : Time : 0 ticks
+1577971090 INFO  : Creating Mesh
+1577971090 INFO  : Time : 380000 ticks
+1577971090 INFO  : Calculating geometry of Mesh
+1577971090 INFO  : Time : 20000 ticks
+1577971090 INFO  : TMAX = 1.500000e+01 STEP_MAX = 100000000
+1577971090 INFO  : Matrix structure initialization
+1577971091 INFO  : complete...
+1577971091 INFO  : Solving the equation (FVM_TVD_IMPLICIT) 
+1577971280 INFO  : step : 500	time step : 0.0005000000000000	 max iter: 100	time: 370000 ticks
+1577971462 INFO  : step : 1000	time step : 0.0010000000000000	 max iter: 100	time: 360000 ticks
+1577971649 INFO  : step : 1500	time step : 0.0015000000000000	 max iter: 100	time: 370000 ticks
+1577971834 INFO  : step : 2000	time step : 0.0019999999999999	 max iter: 100	time: 370000 ticks
+1577972015 INFO  : step : 2500	time step : 0.0025000000000000	 max iter: 100	time: 360000 ticks
+1577972192 INFO  : step : 3000	time step : 0.0030000000000001	 max iter: 100	time: 350000 ticks
+1577972369 INFO  : step : 3500	time step : 0.0035000000000001	 max iter: 100	time: 360000 ticks
+1577972547 INFO  : step : 4000	time step : 0.0040000000000002	 max iter: 100	time: 350000 ticks
+1577972724 INFO  : step : 4500	time step : 0.0045000000000003	 max iter: 100	time: 360000 ticks
+1577972902 INFO  : step : 5000	time step : 0.0050000000000003	 max iter: 100	time: 350000 ticks
+1577973075 INFO  : step : 5500	time step : 0.0055000000000004	 max iter: 100	time: 340000 ticks
+1577973247 INFO  : step : 6000	time step : 0.0060000000000005	 max iter: 100	time: 340000 ticks
+1577973420 INFO  : step : 6500	time step : 0.0065000000000005	 max iter: 100	time: 350000 ticks
+1577973589 INFO  : step : 7000	time step : 0.0070000000000006	 max iter: 100	time: 340000 ticks
+1577973757 INFO  : step : 7500	time step : 0.0075000000000007	 max iter: 100	time: 330000 ticks
+1577973924 INFO  : step : 8000	time step : 0.0080000000000006	 max iter: 100	time: 330000 ticks
+1577974092 INFO  : step : 8500	time step : 0.0085000000000002	 max iter: 100	time: 330000 ticks
+1577974259 INFO  : step : 9000	time step : 0.0089999999999998	 max iter: 100	time: 330000 ticks
+1577974427 INFO  : step : 9500	time step : 0.0094999999999995	 max iter: 100	time: 330000 ticks
+1577974594 INFO  : step : 10000	time step : 0.0099999999999991	 max iter: 100	time: 340000 ticks
+1577974762 INFO  : step : 10500	time step : 0.0104999999999987	 max iter: 100	time: 340000 ticks
+1577974932 INFO  : step : 11000	time step : 0.0109999999999984	 max iter: 100	time: 350000 ticks
+1577975104 INFO  : step : 11500	time step : 0.0114999999999980	 max iter: 100	time: 350000 ticks
+1577975276 INFO  : step : 12000	time step : 0.0119999999999976	 max iter: 100	time: 350000 ticks
+1577975448 INFO  : step : 12500	time step : 0.0124999999999973	 max iter: 100	time: 350000 ticks
+1577975621 INFO  : step : 13000	time step : 0.0129999999999969	 max iter: 100	time: 350000 ticks
+1577975791 INFO  : step : 13500	time step : 0.0134999999999965	 max iter: 100	time: 340000 ticks
+1577975958 INFO  : step : 14000	time step : 0.0139999999999962	 max iter: 100	time: 330000 ticks
+1577976126 INFO  : step : 14500	time step : 0.0144999999999958	 max iter: 100	time: 340000 ticks
+1577976294 INFO  : step : 15000	time step : 0.0149999999999954	 max iter: 100	time: 330000 ticks
+1577976462 INFO  : step : 15500	time step : 0.0154999999999951	 max iter: 100	time: 340000 ticks
+1577976630 INFO  : step : 16000	time step : 0.0159999999999953	 max iter: 100	time: 330000 ticks
+1577976797 INFO  : step : 16500	time step : 0.0164999999999958	 max iter: 100	time: 330000 ticks
+1577976965 INFO  : step : 17000	time step : 0.0169999999999963	 max iter: 100	time: 340000 ticks
+1577977127 INFO  : step : 17500	time step : 0.0174999999999968	 max iter: 100	time: 320000 ticks
+1577977290 INFO  : step : 18000	time step : 0.0179999999999973	 max iter: 100	time: 320000 ticks
+1577977453 INFO  : step : 18500	time step : 0.0184999999999978	 max iter: 100	time: 320000 ticks
+1577977616 INFO  : step : 19000	time step : 0.0189999999999983	 max iter: 100	time: 330000 ticks
+1577977779 INFO  : step : 19500	time step : 0.0194999999999988	 max iter: 100	time: 330000 ticks
+1577977942 INFO  : step : 20000	time step : 0.0199999999999993	 max iter: 100	time: 320000 ticks
+1577978104 INFO  : step : 20500	time step : 0.0204999999999998	 max iter: 100	time: 330000 ticks
+1577978267 INFO  : step : 21000	time step : 0.0210000000000003	 max iter: 100	time: 320000 ticks
+1577978430 INFO  : step : 21500	time step : 0.0215000000000008	 max iter: 100	time: 330000 ticks
+1577978593 INFO  : step : 22000	time step : 0.0220000000000013	 max iter: 100	time: 330000 ticks
+1577978756 INFO  : step : 22500	time step : 0.0225000000000018	 max iter: 100	time: 320000 ticks
+1577978918 INFO  : step : 23000	time step : 0.0230000000000023	 max iter: 100	time: 320000 ticks
+1577979086 INFO  : step : 23500	time step : 0.0235000000000028	 max iter: 100	time: 330000 ticks
+1577979250 INFO  : step : 24000	time step : 0.0240000000000033	 max iter: 100	time: 320000 ticks
+1577979415 INFO  : step : 24500	time step : 0.0245000000000038	 max iter: 100	time: 320000 ticks
+1577979578 INFO  : step : 25000	time step : 0.0250000000000043	 max iter: 100	time: 330000 ticks
+1577979743 INFO  : step : 25500	time step : 0.0255000000000048	 max iter: 100	time: 330000 ticks
+1577979909 INFO  : step : 26000	time step : 0.0260000000000053	 max iter: 100	time: 330000 ticks
+1577980083 INFO  : step : 26500	time step : 0.0265000000000058	 max iter: 100	time: 330000 ticks
+1577980282 INFO  : step : 27000	time step : 0.0270000000000063	 max iter: 100	time: 330000 ticks
+1577980485 INFO  : step : 27500	time step : 0.0275000000000068	 max iter: 100	time: 350000 ticks
+1577980668 INFO  : step : 28000	time step : 0.0280000000000073	 max iter: 100	time: 340000 ticks
+1577980837 INFO  : step : 28500	time step : 0.0285000000000078	 max iter: 100	time: 320000 ticks
+1577981001 INFO  : step : 29000	time step : 0.0290000000000083	 max iter: 100	time: 330000 ticks
+1577981164 INFO  : step : 29500	time step : 0.0295000000000088	 max iter: 100	time: 330000 ticks
+1577981329 INFO  : step : 30000	time step : 0.0300000000000093	 max iter: 100	time: 330000 ticks
+1577981497 INFO  : step : 30500	time step : 0.0305000000000098	 max iter: 100	time: 330000 ticks
+1577981677 INFO  : step : 31000	time step : 0.0310000000000103	 max iter: 100	time: 330000 ticks
+1577981878 INFO  : step : 31500	time step : 0.0315000000000108	 max iter: 100	time: 330000 ticks
+1577982062 INFO  : step : 32000	time step : 0.0320000000000113	 max iter: 100	time: 330000 ticks
+1577982226 INFO  : step : 32500	time step : 0.0325000000000118	 max iter: 100	time: 330000 ticks
+1577982389 INFO  : step : 33000	time step : 0.0330000000000123	 max iter: 100	time: 330000 ticks
+1577982552 INFO  : step : 33500	time step : 0.0335000000000128	 max iter: 100	time: 320000 ticks
+1577982717 INFO  : step : 34000	time step : 0.0340000000000133	 max iter: 100	time: 330000 ticks
+1577982881 INFO  : step : 34500	time step : 0.0345000000000138	 max iter: 100	time: 330000 ticks
+1577983052 INFO  : step : 35000	time step : 0.0350000000000143	 max iter: 100	time: 330000 ticks
+1577983255 INFO  : step : 35500	time step : 0.0355000000000148	 max iter: 100	time: 350000 ticks
+1577983450 INFO  : step : 36000	time step : 0.0360000000000153	 max iter: 100	time: 330000 ticks
+1577983620 INFO  : step : 36500	time step : 0.0365000000000158	 max iter: 100	time: 330000 ticks
+1577983783 INFO  : step : 37000	time step : 0.0370000000000163	 max iter: 100	time: 330000 ticks
+1577983949 INFO  : step : 37500	time step : 0.0375000000000168	 max iter: 100	time: 320000 ticks
+1577984114 INFO  : step : 38000	time step : 0.0380000000000173	 max iter: 100	time: 350000 ticks
+1577984292 INFO  : step : 38500	time step : 0.0385000000000178	 max iter: 100	time: 350000 ticks
+1577984495 INFO  : step : 39000	time step : 0.0390000000000183	 max iter: 100	time: 340000 ticks
+1577984667 INFO  : step : 39500	time step : 0.0395000000000188	 max iter: 100	time: 330000 ticks
+1577984835 INFO  : step : 40000	time step : 0.0400000000000193	 max iter: 100	time: 330000 ticks
+1577985003 INFO  : step : 40500	time step : 0.0405000000000198	 max iter: 100	time: 330000 ticks
+1577985169 INFO  : step : 41000	time step : 0.0410000000000203	 max iter: 100	time: 330000 ticks
+1577985370 INFO  : step : 41500	time step : 0.0415000000000208	 max iter: 100	time: 350000 ticks
+1577985542 INFO  : step : 42000	time step : 0.0420000000000213	 max iter: 100	time: 330000 ticks
+1577985706 INFO  : step : 42500	time step : 0.0425000000000218	 max iter: 100	time: 330000 ticks
+1577985874 INFO  : step : 43000	time step : 0.0430000000000223	 max iter: 100	time: 340000 ticks
+1577986045 INFO  : step : 43500	time step : 0.0435000000000228	 max iter: 100	time: 340000 ticks
+1577986214 INFO  : step : 44000	time step : 0.0440000000000233	 max iter: 100	time: 330000 ticks
+1577986414 INFO  : step : 44500	time step : 0.0445000000000238	 max iter: 100	time: 350000 ticks
+1577986589 INFO  : step : 45000	time step : 0.0450000000000243	 max iter: 100	time: 330000 ticks
+1577986754 INFO  : step : 45500	time step : 0.0455000000000248	 max iter: 100	time: 350000 ticks
+1577986923 INFO  : step : 46000	time step : 0.0460000000000253	 max iter: 100	time: 330000 ticks
+1577987112 INFO  : step : 46500	time step : 0.0465000000000258	 max iter: 100	time: 390000 ticks
+1577987315 INFO  : step : 47000	time step : 0.0470000000000263	 max iter: 100	time: 360000 ticks
+1577987495 INFO  : step : 47500	time step : 0.0475000000000268	 max iter: 100	time: 330000 ticks
+1577987658 INFO  : step : 48000	time step : 0.0480000000000273	 max iter: 100	time: 320000 ticks
+1577987822 INFO  : step : 48500	time step : 0.0485000000000278	 max iter: 100	time: 330000 ticks
+1577987987 INFO  : step : 49000	time step : 0.0490000000000283	 max iter: 100	time: 330000 ticks
+1577988153 INFO  : step : 49500	time step : 0.0495000000000288	 max iter: 100	time: 330000 ticks
+1577988318 INFO  : step : 50000	time step : 0.0500000000000293	 max iter: 100	time: 330000 ticks
+1577988498 INFO  : step : 50500	time step : 0.0505000000000298	 max iter: 100	time: 350000 ticks
+1577988687 INFO  : step : 51000	time step : 0.0510000000000303	 max iter: 100	time: 320000 ticks
+1577988851 INFO  : step : 51500	time step : 0.0515000000000308	 max iter: 100	time: 330000 ticks
+1577989015 INFO  : step : 52000	time step : 0.0520000000000313	 max iter: 100	time: 330000 ticks
+1577989180 INFO  : step : 52500	time step : 0.0525000000000318	 max iter: 100	time: 330000 ticks
+1577989368 INFO  : step : 53000	time step : 0.0530000000000323	 max iter: 100	time: 370000 ticks
+1577989583 INFO  : step : 53500	time step : 0.0535000000000328	 max iter: 100	time: 380000 ticks
+1577989754 INFO  : step : 54000	time step : 0.0540000000000333	 max iter: 100	time: 330000 ticks
+1577989918 INFO  : step : 54500	time step : 0.0545000000000338	 max iter: 100	time: 330000 ticks
+1577990083 INFO  : step : 55000	time step : 0.0550000000000343	 max iter: 100	time: 330000 ticks
+1577990269 INFO  : step : 55500	time step : 0.0555000000000348	 max iter: 100	time: 340000 ticks
+1577990468 INFO  : step : 56000	time step : 0.0560000000000353	 max iter: 100	time: 360000 ticks
