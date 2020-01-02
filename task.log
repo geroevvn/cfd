@@ -124,3 +124,8 @@
 1577990083 INFO  : step : 55000	time step : 0.0550000000000343	 max iter: 100	time: 330000 ticks
 1577990269 INFO  : step : 55500	time step : 0.0555000000000348	 max iter: 100	time: 340000 ticks
 1577990468 INFO  : step : 56000	time step : 0.0560000000000353	 max iter: 100	time: 360000 ticks
+1577990640 INFO  : step : 56500	time step : 0.0565000000000358	 max iter: 100	time: 330000 ticks
+1577990809 INFO  : step : 57000	time step : 0.0570000000000363	 max iter: 100	time: 330000 ticks
+1577990987 INFO  : step : 57500	time step : 0.0575000000000368	 max iter: 100	time: 360000 ticks
+1577991161 INFO  : step : 58000	time step : 0.0580000000000373	 max iter: 100	time: 350000 ticks
+1577991339 INFO  : step : 58500	time step : 0.0585000000000378	 max iter: 100	time: 330000 ticks
