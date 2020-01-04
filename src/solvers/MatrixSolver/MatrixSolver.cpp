@@ -12,6 +12,8 @@
 #include "SolverHypreFlexGmres.h"
 #include "SolverHypreBoomerAmg.h"
 
+
+
 MatrixSolver* MatrixSolver::create(const char* solverName)
 {
 
@@ -45,6 +47,12 @@ MatrixSolver* MatrixSolver::create(const char* solverName)
 	}
 }
 
+MatrixSolver::MatrixSolver()
+{
+    x = 0;
+    b = 0;
+    a = 0;
+}
 
 
 void MatrixSolver::init(int cellsCount, int blockDimension)
@@ -78,7 +86,8 @@ void MatrixSolver::zero_only_matr()
 
 MatrixSolver::~MatrixSolver()
 {
-	delete a;
+    if(a != 0)
+        delete a;
 
 	if(b != 0)
         delete[] b;

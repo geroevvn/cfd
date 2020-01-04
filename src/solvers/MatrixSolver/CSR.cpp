@@ -169,7 +169,7 @@ void CSRMatrix::printToFile(const char *fileName) {
 	for (int i = 0; i < n; i++) {
 		for (int k = ia[i]; k < ia[i + 1]; k++)
 		{
-			fprintf(fp, "{{%d: %16.8e}}  ", ja[k], a[k]);    //if (ja[k] == j) return a[k];
+			fprintf(fp, "{{%d %d: %16.8e}}  \n",i, ja[k], a[k]);    //if (ja[k] == j) return a[k];
 		}
 		fprintf(fp, "\n");
 	}

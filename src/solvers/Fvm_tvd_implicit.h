@@ -29,6 +29,7 @@ public:
 		virtual void run();
 		virtual void parallel_run();
 		virtual void parallel_run_hypre();
+		virtual void parallel_run_hypre_one_multiple();
 		virtual void done();
 
 private:

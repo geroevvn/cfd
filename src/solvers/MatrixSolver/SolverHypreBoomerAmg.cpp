@@ -23,7 +23,7 @@ int SolverHypreBoomerAmg::solve(double eps, int& maxIter)
         for (int i = 0; i < local_size; i++)
         {
             rows[i] = ilower + i;
-            x[i] = 0.0;
+           // x[i] = 0.0;
         }
 
 
@@ -61,7 +61,10 @@ int SolverHypreBoomerAmg::solve(double eps, int& maxIter)
     //}
     //fclose(fp);
 
-    maxIter = 150;
+    //HYPRE_IJMatrixPrint(A, "IJ.out.A");
+    //HYPRE_IJVectorPrint(bb, "IJ.out.b");
+
+    maxIter = 30;
     /* AMG */
     {
         double final_res_norm;
@@ -77,11 +80,11 @@ int SolverHypreBoomerAmg::solve(double eps, int& maxIter)
         HYPRE_BoomerAMGSetNumSweeps(solver, 5);   /* Sweeeps on each level */
         HYPRE_BoomerAMGSetMaxLevels(solver, 20);  /* maximum number of levels */
         HYPRE_BoomerAMGSetTol(solver, eps);       /* conv. tolerance */
-        int start = clock();
+        //int start = clock();
         /* Now setup and solve! */
         HYPRE_BoomerAMGSetup(solver, parcsr_A, par_bb, par_xx);
         HYPRE_BoomerAMGSolve(solver, parcsr_A, par_bb, par_xx);
-        printf("%d\n", clock() - start);
+        //printf("%d\n", clock() - start);
         /* Run info - needed logging turned on */
         int initMaxIter = maxIter;
         HYPRE_BoomerAMGGetNumIterations(solver, (HYPRE_Int*)&maxIter);
@@ -92,7 +95,7 @@ int SolverHypreBoomerAmg::solve(double eps, int& maxIter)
 
             if(Parallel::is_root())
             {
-                Logger::Instance()->logging()->warn("GMRES_SOLVER: maximum iterations done (%d); error: %e\n", maxIter, final_res_norm);
+                Logger::Instance()->logging()->warn("BOOMER_AMG_SOLVER: maximum iterations done (%d); error: %e\n", maxIter, final_res_norm);
             }
 
         }
@@ -101,7 +104,7 @@ int SolverHypreBoomerAmg::solve(double eps, int& maxIter)
 
             if(Parallel::is_root())
             {
-                Logger::Instance()->logging()->error("GMRES_SOLVER: converge error; error : %e", final_res_norm);
+                Logger::Instance()->logging()->error("BOOMER_AMG_SOLVER: converge error; error : %e", final_res_norm);
                 Logger::Instance()->EXIT(-1);
             }
         }
@@ -110,13 +113,16 @@ int SolverHypreBoomerAmg::solve(double eps, int& maxIter)
         HYPRE_BoomerAMGDestroy(solver);
     }
 
-    if (result == MatrixSolver::RESULT_OK) {
+   // HYPRE_IJVectorPrint(xx, "IJ.out.x");
+     //exit(0);
+    if (result == MatrixSolver::RESULT_OK)
+    {
         int *rows = (int*)calloc(local_size, sizeof(int));
         for (int i = 0; i < local_size; i++)
             rows[i] = ilower + i;
 
         /* get the local solution */
-        HYPRE_IJVectorGetValues(xx, local_size, (HYPRE_Int*)rows, x);
+        HYPRE_IJVectorGetValues(xx, local_size, (HYPRE_Int*)rows, &x[ilower]);
 
         delete[] rows;
     }

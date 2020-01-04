@@ -23,6 +23,8 @@ public:
 	static const int RESULT_ERR_MAX_ITER		= 0x0002;
 	static const int RESULT_ERR_CONVERG			= 0x0004;
 
+    MatrixSolver();
+
 	static MatrixSolver* create(const char* solverName);
 
 	virtual ~MatrixSolver();

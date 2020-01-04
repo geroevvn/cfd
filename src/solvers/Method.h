@@ -20,6 +20,7 @@ public:
 	virtual void run() = 0;
 	virtual void parallel_run() = 0;
 	virtual void parallel_run_hypre() = 0;
+	virtual void parallel_run_hypre_one_multiple() = 0;
 	virtual void done() = 0;
 
 };

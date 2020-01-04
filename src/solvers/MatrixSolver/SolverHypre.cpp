@@ -1,8 +1,5 @@
 #include "SolverHypre.h"
-
-
-
-
+;
 
 void SolverHypre::initMatrVectors()
 {
@@ -72,13 +69,13 @@ void SolverHypre::init(int cellsCount, int blockDimension)
         ilower = Parallel::rank * n / Parallel::size;
         iupper = ilower + n / Parallel::size;
     }
-    //std::cout << ilower << " " << iupper << ", " << n << std::endl;
+
     iupper--;
 
 	local_size = iupper - ilower + 1;
 
 	cols	= new HYPRE_Int[blockDim];
-	values	= new double[n];
+	values	= new double[blockDim];
 	x		= new double[n];
 
 	if(Parallel::is_root())
@@ -119,7 +116,6 @@ SolverHypre::~SolverHypre()
 	HYPRE_IJMatrixDestroy(A);
 	HYPRE_IJVectorDestroy(bb);
 	HYPRE_IJVectorDestroy(xx);
-	delete[] x;
 
 	if(Parallel::is_root() )
 	{

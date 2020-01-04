@@ -56,7 +56,7 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 		Logger::Instance()->EXIT(doc.ErrorId());
 	}
 
-	double ro, u, v, w, P;
+	double ro, u, v, w, P, gamma;
 
 	TiXmlNode* task = 0;
 	TiXmlElement* el = 0;
@@ -169,6 +169,7 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 		node1->FirstChild( "Vy" )->ToElement()->Attribute( "value", &v );
 		node1->FirstChild( "Vz" )->ToElement()->Attribute( "value", &w );
 		node1->FirstChild( "P"  )->ToElement()->Attribute( "value", &P );
+		node1->FirstChild( "Gamma"  )->ToElement()->Attribute( "value", &gamma );
 
 		for (Mesh::CellIterator it = msh->beginCell(), ite = msh->endCell(); it != ite; ++it)
 		{
@@ -176,7 +177,7 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 			it->cellFDP.ru = u * ro;
 			it->cellFDP.rv = v * ro;
 			it->cellFDP.rw = w * ro;
-			it->cellFDP.gamma = 1.40000;
+			it->cellFDP.gamma = gamma;
 			it->cellFDP.P = P;
 
 			it->cellFDP.rE = CellFluidDynamicsProps::calc_rE(ro, P, u, v, w, it->cellFDP.gamma);
@@ -215,6 +216,7 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 			node1->FirstChild( "Vy" )->ToElement()->Attribute( "value", &v );
 			node1->FirstChild( "Vz" )->ToElement()->Attribute( "value", &w );
 			node1->FirstChild( "P"  )->ToElement()->Attribute( "value", &P );
+			node1->FirstChild( "Gamma"  )->ToElement()->Attribute( "value", &gamma );
 
 			for (Mesh::FaceIterator it = msh->beginBndFace(name), ite = msh->endBndFace(name); it != ite; ++it)
 			{
@@ -222,7 +224,7 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 				it->faceFDP.ru = u * ro;
 				it->faceFDP.rv = v * ro;
 				it->faceFDP.rw = w * ro;
-				it->faceFDP.gamma = 1.40000;
+				it->faceFDP.gamma = gamma;
 				it->faceFDP.P = P;
 
 				it->faceFDP.rE = CellFluidDynamicsProps::calc_rE(ro, P, u, v, w, it->faceFDP.gamma);
@@ -560,17 +562,8 @@ void FVM_TVD_IMPLICIT::run()
 	unsigned int nc = msh->cells.size();
 
 
-	double V = 0;
-	for(Mesh::CellIterator it = msh->beginCell(), ite = msh->endCell(); it != ite; ++it)
-	{
-		if(it->V > V)
-		{
-			V = it->V;
-		}
-	}
-    /*
-	std::cout << V /TAU << std::endl;
 
+    /*
 	for(int i = 0; i < msh->cells.size(); i++)
 	{
         Point po;
@@ -877,7 +870,6 @@ void FVM_TVD_IMPLICIT::run()
 			solverMtx->addMatrElement(c1, c1, mtx5);
 			solverMtx->setRightElement(c1, right5[c1]);
 		}
-
 
 		solveErr = solverMtx->solve(eps, max_iter);
 
@@ -1866,7 +1858,7 @@ void FVM_TVD_IMPLICIT::parallel_run()
 	if( Parallel::is_root() )
 	    {
         get_all_cells_on_root(inds_cells_root, ind_cell_out, ind_cell_in, ro_out, ru_out, rv_out, rw_out, rE_out, P_out, ro_in, ru_in, rv_in, rw_in, rE_in, P_in, fc_rank);
-        save(1);
+        save(step);
         Logger::Instance()->logging()->info("complete...");
     	}
 	else
@@ -1936,6 +1928,420 @@ void FVM_TVD_IMPLICIT::parallel_run()
     free_mem(A_minus);
 }
 
+
+
+
+void FVM_TVD_IMPLICIT::parallel_run_hypre_one_multiple()
+{
+	int nc;
+    int fc_rank;
+	double t = 0;
+	int step = 0;
+	double eps = 1E-7;
+	int max_iter = 100;
+    int solveErr = 0;
+    int time_end, time_start;
+    int c1, c2;
+    int ic, oc;
+    Point pc;
+    CellFluidDynamicsProps cfdp1, cfdp2;
+
+    double** A_plus;
+    double** A_minus;
+    double** left_vecs;
+    double** right_vecs;
+    double** mtx5;
+
+    double* eigen_vals;
+    double* Flux;
+
+    double temp_ro;
+	double temp_u;
+	double temp_v;
+	double temp_w;
+	double temp_GAMMA;
+	double temp_H;
+	double temp_c;
+
+
+    MatrixSolver* solverMtx = MatrixSolver::create("HYPRE_BoomerAMG");
+
+    double* right5_rank;
+    double* right5_root;
+
+    double* a_root;
+
+    int* ind_cell_out;
+    int* ind_cell_in;
+
+    double* n_x;
+    double* n_y;
+    double* n_z;
+    double* S;
+
+    double* ro_out;
+    double* ru_out;
+    double* rv_out;
+    double* rw_out;
+    double* rE_out;
+    double* P_out;
+    double* gamma_out;
+
+    double* ro_in;
+    double* ru_in;
+    double* rv_in;
+    double* rw_in;
+    double* rE_in;
+    double* P_in;
+    double* gamma_in;
+
+
+    Parallel::b_cast_double_buff( Parallel::get_root_rank(), 1, &TAU);
+	Parallel::b_cast_double_buff( Parallel::get_root_rank(), 1, &TMAX);
+
+	Parallel::b_cast_int_buff( Parallel::get_root_rank(), 1, &LOG_STEP_SAVE);
+	Parallel::b_cast_int_buff( Parallel::get_root_rank(), 1, &FILE_STEP_SAVE);
+	Parallel::b_cast_int_buff( Parallel::get_root_rank(), 1, &STEP_MAX);
+
+
+	if( Parallel::is_root() )
+	{
+		Logger::Instance()->logging()->info("TMAX = %e STEP_MAX = %d", TMAX, STEP_MAX);
+        time_start = clock();
+
+        Logger::Instance()->logging()->info("Arrays initialization");
+
+		nc = msh->cells.size();
+
+		for(int i = 0; i < Parallel::size; i++)
+		{
+            if( i != Parallel::get_root_rank() )
+            {
+                Parallel::send(i, 1, 1, &nc);
+            }
+        }
+
+        right5_rank = new double[5];
+
+        A_plus = allocate_mem();
+        A_minus = allocate_mem();
+        left_vecs = allocate_mem();
+        right_vecs = allocate_mem();
+        eigen_vals = new double[5];
+
+        mtx5 = allocate_mem();
+        clear5(mtx5);
+
+        Flux = new double[5];
+	}
+    else
+    {
+        Parallel::recv(Parallel::get_root_rank(), 1, 1, &nc);
+    }
+
+
+    solverMtx->init(nc, 5);
+
+
+    if( Parallel::is_root() )
+    {
+        Logger::Instance()->logging()->info("The end of preparations");
+        Logger::Instance()->logging()->info("Time : %d ticks", clock() - time_start);
+
+        Logger::Instance()->logging()->info("Solving the equation (FVM_TVD_IMPLICIT on %d cores)", Parallel::size);
+    }
+
+
+
+	while(t < TMAX && step < STEP_MAX)
+	{
+		t += TAU;
+		step++;
+
+
+        solverMtx->zero();
+
+
+        if( Parallel::is_root() )
+        {
+            time_start = clock();
+
+
+            for(Mesh::BndFaceIterator it = msh->beginBndFace(&(msh->bnd_faces), &bndWallNames), ite = msh->endBndFace(&(msh->bnd_faces), &bndWallNames); it != ite; ++it)
+            {
+                c1 = it->c[0]->index;
+
+                it->faceFDP.ro = it->c[0]->cellFDP.ro;
+                it->faceFDP.rE = it->c[0]->cellFDP.rE;
+                it->faceFDP.P = it->c[0]->cellFDP.P;
+                it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
+
+                double rvel_n = it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z;
+
+
+                it->faceFDP.ru = it->c[0]->cellFDP.ru - 2 * rvel_n * it->n.x;
+                it->faceFDP.rv = it->c[0]->cellFDP.rv - 2 * rvel_n * it->n.y;
+                it->faceFDP.rw = it->c[0]->cellFDP.rw - 2 * rvel_n * it->n.z;
+
+
+                flux_Lax_Friedrichs(Flux, it->c[0]->cellFDP, it->faceFDP, it->n);
+
+                for(int i = 0; i < 5; i++)
+                {
+                    //right5_rank[ 5*c1 + i ] -= Flux[i] * it->S;
+                    right5_rank[ i ] = -Flux[i] * it->S;
+                }
+
+                CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, it->c[0]->cellFDP, it->faceFDP);
+
+                eigen_values(eigen_vals, temp_u, temp_v, temp_w, temp_c, it->n);
+                left_eigen_vecs(left_vecs, temp_u, temp_v, temp_w, temp_c, temp_GAMMA, it->n);
+                right_eigen_vecs(right_vecs, temp_u, temp_v, temp_w, temp_c, temp_H, it->n);
+
+                matrix_Ap(A_plus, right_vecs, eigen_vals, left_vecs);
+
+                for(int i = 0; i < 5; i++)
+                {
+                    for(int j = 0; j < 5; j++)
+                    {
+                        A_plus[i][j] *= it->S;
+                    }
+                }
+
+                solverMtx->addMatrElement(c1, c1, A_plus);
+
+                solverMtx->addRightElement(c1, right5_rank);
+            }
+
+
+            for(Mesh::BndFaceIterator it = msh->beginBndFace(&(msh->bnd_faces), &bndInletNames), ite = msh->endBndFace(&(msh->bnd_faces), &bndInletNames); it != ite; ++it)
+            {
+                c1 = it->c[0]->index;
+
+                flux_Lax_Friedrichs(Flux, it->c[0]->cellFDP, it->faceFDP, it->n);
+
+                for(int i = 0; i < 5; i++)
+                {
+                    //right5_rank[ 5*c1 + i ] -= Flux[i] * it->S;
+                    right5_rank[ i ] = -Flux[i] * it->S;
+                }
+
+                CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, it->c[0]->cellFDP, it->faceFDP);
+
+                eigen_values(eigen_vals, temp_u, temp_v, temp_w, temp_c, it->n);
+                left_eigen_vecs(left_vecs, temp_u, temp_v, temp_w, temp_c, temp_GAMMA, it->n);
+                right_eigen_vecs(right_vecs, temp_u, temp_v, temp_w, temp_c, temp_H, it->n);
+
+                matrix_Ap(A_plus, right_vecs, eigen_vals, left_vecs);
+
+                for(int i = 0; i < 5; i++)
+                {
+                    for(int j = 0; j < 5; j++)
+                    {
+                        A_plus[i][j] *= it->S;
+                    }
+                }
+
+                solverMtx->addMatrElement(c1, c1, A_plus);
+
+                solverMtx->addRightElement(c1, right5_rank);
+            }
+
+
+            for(Mesh::BndFaceIterator it = msh->beginBndFace(&(msh->bnd_faces), &bndOutletNames), ite = msh->endBndFace(&(msh->bnd_faces), &bndOutletNames); it != ite; ++it)
+            {
+                c1 = it->c[0]->index;
+
+                it->faceFDP.ro = it->c[0]->cellFDP.ro;
+                it->faceFDP.ru = it->c[0]->cellFDP.ru;
+                it->faceFDP.rv = it->c[0]->cellFDP.rv;
+                it->faceFDP.rw = it->c[0]->cellFDP.rw;
+                it->faceFDP.P = it->c[0]->cellFDP.P;
+                it->faceFDP.rE = it->c[0]->cellFDP.rE;
+                it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
+
+                flux_Lax_Friedrichs(Flux, it->c[0]->cellFDP, it->faceFDP, it->n);
+
+                for(int i = 0; i < 5; i++)
+                {
+                    //right5_rank[ 5*c1 + i ] -= Flux[i] * it->S;
+                    right5_rank[ i ] = -Flux[i] * it->S;
+                }
+
+                CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, it->c[0]->cellFDP, it->faceFDP);
+
+                eigen_values(eigen_vals, temp_u, temp_v, temp_w, temp_c, it->n);
+                left_eigen_vecs(left_vecs, temp_u, temp_v, temp_w, temp_c, temp_GAMMA, it->n);
+                right_eigen_vecs(right_vecs, temp_u, temp_v, temp_w, temp_c, temp_H, it->n);
+
+                matrix_Ap(A_plus, right_vecs, eigen_vals, left_vecs);
+
+                for(int i = 0; i < 5; i++)
+                {
+                    for(int j = 0; j < 5; j++)
+                    {
+                        A_plus[i][j] *= it->S;
+                    }
+                }
+
+                solverMtx->addMatrElement(c1, c1, A_plus);
+
+                solverMtx->addRightElement(c1, right5_rank);
+            }
+
+            for(Mesh::FaceIterator it = msh->beginInnerFace(), ite = msh->endInnerFace(); it != ite; ++it)
+            {
+                oc = it->out_cell;
+                ic = it->in_cell;
+                c1 = it->c[oc]->index;
+                c2 = it->c[ic]->index;
+
+                flux_Lax_Friedrichs(Flux, it->c[oc]->cellFDP, it->c[ic]->cellFDP, it->n);
+
+                for(int i = 0; i < 5; i++)
+                {
+                    right5_rank[i] = -Flux[i] * it->S;
+                }
+
+                solverMtx->addRightElement(c1, right5_rank);
+
+
+                for(int i = 0; i < 5; i++)
+                {
+                    right5_rank[i] = Flux[i] * it->S;
+                }
+
+                solverMtx->addRightElement(c2, right5_rank);
+
+
+                CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, it->c[0]->cellFDP, it->c[1]->cellFDP);
+
+                eigen_values(eigen_vals, temp_u, temp_v, temp_w, temp_c, it->n);
+                left_eigen_vecs(left_vecs, temp_u, temp_v, temp_w, temp_c, temp_GAMMA, it->n);
+                right_eigen_vecs(right_vecs, temp_u, temp_v, temp_w, temp_c, temp_H, it->n);
+
+                matrix_Ap(A_plus, right_vecs, eigen_vals, left_vecs);
+                matrix_Am(A_minus, right_vecs, eigen_vals, left_vecs);
+
+
+                for(int i = 0; i < 5; i++)
+                {
+                    for(int j = 0; j < 5; j++)
+                    {
+                        A_plus[i][j]  *= it->S;
+                        A_minus[i][j] *= it->S;
+                    }
+                }
+
+                solverMtx->addMatrElement(c1, c1, A_plus);
+                solverMtx->addMatrElement(c1, c2, A_minus);
+
+                pc.x = -it->n.x;
+                pc.y = -it->n.y;
+                pc.z = -it->n.z;
+
+                eigen_values(eigen_vals, temp_u, temp_v, temp_w, temp_c, pc);
+                left_eigen_vecs(left_vecs, temp_u, temp_v, temp_w, temp_c, temp_GAMMA, pc);
+                right_eigen_vecs(right_vecs, temp_u, temp_v, temp_w, temp_c, temp_H, pc);
+
+                matrix_Ap(A_plus, right_vecs, eigen_vals, left_vecs);
+                matrix_Am(A_minus, right_vecs, eigen_vals, left_vecs);
+
+
+                for(int i = 0; i < 5; i++)
+                {
+                    for(int j = 0; j < 5; j++)
+                    {
+                        A_plus[i][j]  *= it->S;
+                        A_minus[i][j] *= it->S;
+                    }
+                }
+
+                solverMtx->addMatrElement(c2, c2, A_plus);
+                solverMtx->addMatrElement(c2, c1, A_minus);
+            }
+
+        }
+
+
+        if( Parallel::is_root() )
+        {
+            for(Mesh::CellIterator it = msh->beginCell(), ite = msh->endCell(); it != ite; ++it)
+            {
+                c1 = it->index;
+                double V_tau = it->V / TAU;
+
+                for(int i = 0; i < 5; i++)
+                {
+                    mtx5[i][i] = V_tau;
+                }
+
+                solverMtx->addMatrElement(c1, c1, mtx5);
+            }
+        }
+
+        solveErr = solverMtx->solve(eps, max_iter);
+
+
+        if(solveErr == MatrixSolver::RESULT_OK)
+        {
+            if( Parallel::is_root() )
+            {
+                for(Mesh::CellIterator it = msh->beginCell(), ite = msh->endCell(); it != ite; ++it)
+                {
+                     c1 = it->index;
+
+                     it->cellFDP.ro += solverMtx->x[5 * c1 + 0];
+                     it->cellFDP.ru += solverMtx->x[5 * c1 + 1];
+                     it->cellFDP.rv += solverMtx->x[5 * c1 + 2];
+                     it->cellFDP.rw += solverMtx->x[5 * c1 + 3];
+                     it->cellFDP.rE += solverMtx->x[5 * c1 + 4];
+
+                     it->cellFDP.P = CellFluidDynamicsProps::calc_P(it->cellFDP.ro, it->cellFDP.rE, it->cellFDP.ru, it->cellFDP.rv, it->cellFDP.rw, it->cellFDP.gamma);
+                }
+
+
+                if(step % FILE_STEP_SAVE == 0)
+                {
+                    save(step);
+                }
+
+                time_end = clock();
+
+                if(step % LOG_STEP_SAVE == 0)
+                {
+                    Logger::Instance()->logging()->info("step : %d\ttime step : %.16f\t max iter: %d\ttime: %d ticks", step, t, max_iter, time_end - time_start);
+                }
+            }
+
+        }
+
+	}
+
+
+	if( Parallel::is_root() )
+    {
+        save(step);
+        Logger::Instance()->logging()->info("complete...");
+    }
+
+
+
+    delete solverMtx;
+
+	if( !Parallel::is_root() )
+	{
+        delete [] right5_rank;
+        delete [] eigen_vals;
+        delete [] Flux;
+
+        free(left_vecs);
+        free_mem(right_vecs);
+        free_mem(A_plus);
+        free_mem(A_minus);
+	}
+
+}
 
 
 

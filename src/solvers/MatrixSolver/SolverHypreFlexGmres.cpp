@@ -23,7 +23,6 @@ int SolverHypreFlexGmres::solve(double eps, int& maxIter)
         for (int i = 0; i < local_size; i++)
         {
             rows[i] = ilower + i;
-            x[i] = 0.0;
         }
 
 
@@ -64,11 +63,11 @@ int SolverHypreFlexGmres::solve(double eps, int& maxIter)
         HYPRE_FlexGMRESSetPrintLevel(solver, PRINT_LEVEL);		/* print solve info */
         HYPRE_FlexGMRESSetLogging(solver, 1);			/* needed to get run info later */
 
-        int start = clock();
+        //int start = clock();
         /* Now setup and solve! */
         HYPRE_ParCSRFlexGMRESSetup(solver, parcsr_A, par_bb, par_xx);
         HYPRE_ParCSRFlexGMRESSolve(solver, parcsr_A, par_bb, par_xx);
-        printf("%d\n", clock() - start);
+        //printf("%d\n", clock() - start);
         /* Run info - needed logging turned on */
         int initMaxIter = maxIter;
         HYPRE_FlexGMRESGetNumIterations(solver, (HYPRE_Int*)&maxIter);
@@ -79,7 +78,7 @@ int SolverHypreFlexGmres::solve(double eps, int& maxIter)
 
             if(Parallel::is_root())
             {
-                Logger::Instance()->logging()->warn("GMRES_SOLVER: maximum iterations done (%d); error: %e\n", maxIter, final_res_norm);
+                Logger::Instance()->logging()->warn("FLEX_GMRES_SOLVER: maximum iterations done (%d); error: %e\n", maxIter, final_res_norm);
             }
 
         }
@@ -88,7 +87,7 @@ int SolverHypreFlexGmres::solve(double eps, int& maxIter)
 
             if(Parallel::is_root())
             {
-                Logger::Instance()->logging()->error("GMRES_SOLVER: converge error; error : %e", final_res_norm);
+                Logger::Instance()->logging()->error("FLEX_GMRES_SOLVER: converge error; error : %e", final_res_norm);
                 Logger::Instance()->EXIT(-1);
             }
         }

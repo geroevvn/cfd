@@ -43,8 +43,8 @@ int SolverHypreGmres::solve(double eps, int& maxIter)
 	HYPRE_IJVectorGetObject(xx, (void **)&par_xx);
 
     maxIter = 300;
-  // HYPRE_IJMatrixPrint(A, "IJ.out.A");
-    HYPRE_IJVectorPrint(bb, "IJ.out.b");
+    //HYPRE_IJMatrixPrint(A, "IJ.out.A");
+    // HYPRE_IJVectorPrint(bb, "IJ.out.b");
     //maxIter = 300;
 	/* Choose a solver and solve the system */
 
@@ -73,7 +73,7 @@ int SolverHypreGmres::solve(double eps, int& maxIter)
 
 		int initMaxIter = maxIter;
 		HYPRE_GMRESGetNumIterations(solver, (HYPRE_Int*)&maxIter);
-		HYPRE_GMRESGetFinalRelativeResidualNorm(solver, &final_res_norm); //std::cout << final_res_norm << std::endl;
+		HYPRE_GMRESGetFinalRelativeResidualNorm(solver, &final_res_norm); std::cout << final_res_norm << std::endl<<maxIter<<std::endl<<eps << std::endl;
 
 
 
@@ -106,14 +106,10 @@ int SolverHypreGmres::solve(double eps, int& maxIter)
 	}
 
 
-     static int q = 0;
-     if(++q == 84)
-    {
-    exit(0);
-    }
 
-    HYPRE_IJVectorPrint(xx, "IJ.out.x");
-    exit(0);
+
+    //HYPRE_IJVectorPrint(xx, "IJ.out.x");
+
 
 
 
@@ -122,10 +118,11 @@ int SolverHypreGmres::solve(double eps, int& maxIter)
 	delete [] rows;
 
     //start = clock();
-    if(Parallel::size > 1)
-    {
-        gather_and_b_cast();
-    }
+
+
+    gather_and_b_cast();
+    //exit(0);
+
     // printf("Gather : %d\n",clock() - start);
 
 	return result;
