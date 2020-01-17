@@ -84,7 +84,8 @@ int SolverZeidel::solve(double eps, int& maxIter)
 		maxIter = step;
 		return MatrixSolver::RESULT_OK;
 	}
-	//maxIter = step;
+
+	maxIter = step;
 	return MatrixSolver::RESULT_OK;
 }
 

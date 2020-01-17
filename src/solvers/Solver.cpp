@@ -73,8 +73,7 @@ void Solver::runMethod(Method* m)
 	}
 	else
 	{
-		m->parallel_run_hypre_one_multiple();
-		//m->run();
+		m->parallel_run();
 	}
 }
 

@@ -180,7 +180,7 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 			it->cellFDP.gamma = gamma;
 			it->cellFDP.P = P;
 
-			it->cellFDP.rE = CellFluidDynamicsProps::calc_rE(ro, P, u, v, w, it->cellFDP.gamma);
+			it->cellFDP.rE = CellFluidDynamicsProps::calc_rE(ro, P, u, v, w, gamma);
 		}
 
 		regNode = regNode->NextSibling("region");
@@ -227,7 +227,7 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 				it->faceFDP.gamma = gamma;
 				it->faceFDP.P = P;
 
-				it->faceFDP.rE = CellFluidDynamicsProps::calc_rE(ro, P, u, v, w, it->faceFDP.gamma);
+				it->faceFDP.rE = CellFluidDynamicsProps::calc_rE(ro, P, u, v, w, gamma);
 			}
 		}
 		else
@@ -1041,7 +1041,7 @@ void FVM_TVD_IMPLICIT::parallel_run()
     int fc_rank;
 	double t = 0;
 	int step = 0;
-	double eps = 1E-8;
+	double eps = 1E-7;
 	int max_iter = 100;
     int solveErr = 0;
     int time_end, time_start;
@@ -1128,10 +1128,6 @@ void FVM_TVD_IMPLICIT::parallel_run()
             }
         }
 
-        int fc = msh->faces.size();
-
-        ind_vector_faces.resize( Parallel::size );
-
         solverMtx->init(nc, 5);
 
         CSRMatrix::DELTA = 65536;
@@ -1186,14 +1182,20 @@ void FVM_TVD_IMPLICIT::parallel_run()
             cnt_of_bnd_faces++;
         }
 
-        int fc_root_rank = fc / Parallel::size + fc % Parallel::size;
 
+        int fc = cnt_of_bnd_faces + msh->inner_faces.size();
+        ind_vector_faces.resize( Parallel::size );
+
+        int fc_root_rank = fc / Parallel::size + fc % Parallel::size;
+        cout << cnt_of_bnd_faces<<" "<<fc << " " << msh->faces.size();
         vector<int> ind_vector_root;
         int inner_faces_cnt = msh->inner_faces.size(); // Первые cnt_of_bnd_faces элементов вектора faces - граничные
 
         bool* face_used = new bool[ inner_faces_cnt ];
         memset(face_used, false, inner_faces_cnt * sizeof(bool));
 
+
+        int offset = msh->faces.size() - msh->inner_faces.size();
         if(cnt_of_bnd_faces <= fc_root_rank)
         {
             fc_rank = ( fc - (fc % Parallel::size) ) / Parallel::size;
@@ -1208,7 +1210,8 @@ void FVM_TVD_IMPLICIT::parallel_run()
                     inds_cells_root.push_back( it->c[1]->index );
 
                     ind_vector_root.push_back(it->index);
-                    face_used[it->index - cnt_of_bnd_faces] = true;
+                    //face_used[it->index - cnt_of_bnd_faces] = true;
+                    face_used[it->index - offset] = true;
                     k++;
                 }
             }
@@ -1228,7 +1231,8 @@ void FVM_TVD_IMPLICIT::parallel_run()
                     inds_cells_root.push_back( it->c[1]->index );
 
                     ind_vector_root.push_back(it->index);
-                    face_used[it->index - cnt_of_bnd_faces] = true;
+                    face_used[it->index - offset] = true;
+                    //face_used[it->index - cnt_of_bnd_faces] = true;
                     k++;
                     fc_root_rank++;
                 }
@@ -1471,8 +1475,11 @@ void FVM_TVD_IMPLICIT::parallel_run()
     }
 
 
+    const int MAX_ITER = max_iter;
+
 	while(t < TMAX && step < STEP_MAX)
 	{
+        max_iter = MAX_ITER;
 		t += TAU;
 		step++;
 
@@ -1855,16 +1862,15 @@ void FVM_TVD_IMPLICIT::parallel_run()
         }
 	}
 
+
+    get_all_cells_on_root(inds_cells_root, ind_cell_out, ind_cell_in, ro_out, ru_out, rv_out, rw_out, rE_out, P_out, ro_in, ru_in, rv_in, rw_in, rE_in, P_in, fc_rank);
+
 	if( Parallel::is_root() )
-	    {
-        get_all_cells_on_root(inds_cells_root, ind_cell_out, ind_cell_in, ro_out, ru_out, rv_out, rw_out, rE_out, P_out, ro_in, ru_in, rv_in, rw_in, rE_in, P_in, fc_rank);
+    {
         save(step);
         Logger::Instance()->logging()->info("complete...");
-    	}
-	else
-	{
-		get_all_cells_on_root(inds_cells_root, ind_cell_out, ind_cell_in, ro_out, ru_out, rv_out, rw_out, rE_out, P_out, ro_in, ru_in, rv_in, rw_in, rE_in, P_in, fc_rank);
-	}
+    }
+
 
 	if( !Parallel::is_root() )
 	{
