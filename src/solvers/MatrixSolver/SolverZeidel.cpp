@@ -12,6 +12,9 @@ using namespace std;
 
 int SolverZeidel::solve(double eps, int& maxIter)
 {
+    static int ITER = maxIter;
+    maxIter = ITER;
+
 	double	aii;
 	double	err = 1.0;
 	int		step = 0;

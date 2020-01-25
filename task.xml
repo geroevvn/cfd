@@ -14,10 +14,10 @@
 		  <max_limited_cells value="30" />
         </CFL>
 		<TAU 			value="1.0e-6" />		<!-- шаг по времени, используется меньшее значение из этого или из полученного из числа Куранта -->
-		<TMAX 			value="15" />			<!-- время, до которго выполняется расчет -->
+		<TMAX 			value="20" />			<!-- время, до которго выполняется расчет -->
                 <STEP_MAX value="100000000" />
-                <FILE_OUTPUT_STEP 	value="50" />            <!-- количество итераций, через которые выполняется вывод результатов в файл -->
-		<LOG_OUTPUT_STEP 	value="5" />          <!-- интервал вывода краткой информации в лог-файл -->
+                <FILE_OUTPUT_STEP 	value="300000" />            <!-- количество итераций, через которые выполняется вывод результатов в файл -->
+		<LOG_OUTPUT_STEP 	value="10000" />          <!-- интервал вывода краткой информации в лог-файл -->
                 <FLUX value="GODUNOV" /> <!-- LAX, GODUNOV -->
                 <TURBULENCE_MODEL value="K_EPS" />
 	</control>
@@ -71,9 +71,6 @@
 
 	<boundaries count="3">
 		
-		
-	
-
 		<boundCond FaceType="1">
 			<name>INLET</name>
 			<type>BOUND_INLET</type>
@@ -94,7 +91,8 @@
 				<Gamma value = "1.4"/>
 
 			</parameters>
-		</boundCond>
+		</boundCond>			
+
 		<boundCond FaceType="2">
 			<name>OUTLET</name>
 			<type>BOUND_OUTLET</type>
@@ -104,8 +102,7 @@
 			<name>WALL</name>
 			<type>BOUND_WALL</type>
 		</boundCond>
-		
-						
+					
 
 	</boundaries>
 </task>
