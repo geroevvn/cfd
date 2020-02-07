@@ -21,6 +21,7 @@ int SolverZeidel::solve(double eps, int& maxIter)
 	double	tmp;
 
 	memset(x, 0, sizeof(double)*a->n);
+
 	while (err > eps && maxIter > step)
 	{
 		step++;
