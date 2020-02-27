@@ -42,6 +42,7 @@ private:
 		int 			LOG_STEP_SAVE;
 		double			TAU;
 		double			CFL;
+		int             STEADY;
 
 		double* Flux;
 		double* Flux1;
@@ -56,7 +57,7 @@ private:
         vector<string> bndOutletNames;
         vector<string> bndWallNames;
 
-
+        void write_to_file_forces(ofstream& f_forces, double t);
         void get_unique_elements(vector<int>&);
 
         int check_bnd_cond();

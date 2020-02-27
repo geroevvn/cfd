@@ -12,8 +12,9 @@
 #include <string.h>
 #include <vector>
 #include <algorithm>
+#include <fstream>
 
-
+using namespace std;
 
 double FVM_TVD_IMPLICIT::_max(double x, double y)
 {
@@ -86,9 +87,9 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 
 	msh = grid->get_mesh();
 
-	int steadyVal = 1;
+	//int steadyVal = 1;
 	node0 = task->FirstChild("control");
-	//node0->FirstChild("STEADY")->ToElement()->Attribute("value", &steadyVal);
+	node0->FirstChild("STEADY")->ToElement()->Attribute("value", &STEADY);
 	node0->FirstChild("TAU")->ToElement()->Attribute("value", &TAU);
 	node0->FirstChild("TMAX")->ToElement()->Attribute("value", &TMAX);
 	node0->FirstChild("STEP_MAX")->ToElement()->Attribute("value", &STEP_MAX);
@@ -555,6 +556,48 @@ void print5(double** A)
 }
 
 
+/*
+void init_tau_array(double* tau_cfl)
+{
+    for(Mesh::CellIterator it = msh->beginCell(), ite = msh->endCell(); it != ite; ++it)
+    {
+        int ind = it->index;
+
+        double sum = 0;
+        for(int i = 0; i < it->fCount; i++)
+        {
+            Face* face = it->f[i];
+
+            CellFluidDynamicsProps cfdp1 = face->faceFDP
+
+
+            double eigen_val1 = sqrt(cfdp1.gamma * cfdp1.P / cfdp1.ro) + abs( v_n1 );
+            double eigen_val2 = sqrt(cfdp2.gamma * cfdp2.P / cfdp2.ro) + abs( v_n2 );
+            double alpha = _max(eigen_val1, eigen_val2);
+        }
+
+        tau_cfl[ind] = CFL * it->V / sum;
+    }
+
+}
+*/
+
+
+void FVM_TVD_IMPLICIT::write_to_file_forces(ofstream& f_forces, double t)
+{
+    double F_x = 0;
+    double F_y = 0;
+
+    for(Mesh::BndFaceIterator it = msh->beginBndFace(&(msh->bnd_faces), &bndWallNames), ite = msh->endBndFace(&(msh->bnd_faces), &bndWallNames); it != ite; ++it)
+    {
+        F_x += it->c[0]->cellFDP.P * it->S * it->n.x;
+        F_y += it->c[0]->cellFDP.P * it->S * it->n.y;
+    }
+
+    f_forces << t << " " << F_x << " " << F_y << "\n";
+}
+
+
 void FVM_TVD_IMPLICIT::run()
 {
 	Logger::Instance()->logging()->info("TMAX = %e STEP_MAX = %d", TMAX, STEP_MAX);
@@ -610,6 +653,7 @@ void FVM_TVD_IMPLICIT::run()
 		right5[i] = new double[5];
 	}
 
+    //double* tau_cfl = new double[nc];
 
 	double* eigen_vals = new double[5];
 	double** left_vecs = allocate_mem();
@@ -634,6 +678,8 @@ void FVM_TVD_IMPLICIT::run()
 	int ic, oc, c1, c2;
 	Point pc;
 
+
+    //init_tau_array(tau_cfl);
 
 	Logger::Instance()->logging()->info("Matrix structure initialization");
 
@@ -661,6 +707,13 @@ void FVM_TVD_IMPLICIT::run()
 
 	Logger::Instance()->logging()->info("Solving the equation (FVM_TVD_IMPLICIT) ");
 
+
+    ofstream f_forces;
+
+    f_forces.open("force_x_y.txt");
+	write_to_file_forces(f_forces, 0);
+    f_forces.close();
+
 	while(t < TMAX && step < STEP_MAX)
 	{
 		long time_start, time_end;
@@ -681,9 +734,9 @@ void FVM_TVD_IMPLICIT::run()
 			c1 = it->c[0]->index;
 
             it->faceFDP.ro = it->c[0]->cellFDP.ro;
-			it->faceFDP.rE = it->c[0]->cellFDP.rE;
 			it->faceFDP.P = it->c[0]->cellFDP.P;
 			it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
+            it->faceFDP.rE = it->c[0]->cellFDP.rE;
 
 			double rvel_n = it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z;
 
@@ -691,7 +744,6 @@ void FVM_TVD_IMPLICIT::run()
 			it->faceFDP.ru = it->c[0]->cellFDP.ru - 2 * rvel_n * it->n.x;
 			it->faceFDP.rv = it->c[0]->cellFDP.rv - 2 * rvel_n * it->n.y;
 			it->faceFDP.rw = it->c[0]->cellFDP.rw - 2 * rvel_n * it->n.z;
-
 
 			flux_Lax_Friedrichs(Flux, it->c[0]->cellFDP, it->faceFDP, it->n);
 
@@ -871,6 +923,7 @@ void FVM_TVD_IMPLICIT::run()
 			solverMtx->setRightElement(c1, right5[c1]);
 		}
 
+
 		solveErr = solverMtx->solve(eps, max_iter);
 
 
@@ -899,6 +952,10 @@ void FVM_TVD_IMPLICIT::run()
 			if(step % LOG_STEP_SAVE == 0)
 			{
 				Logger::Instance()->logging()->info("step : %d\ttime step : %.16f\t max iter: %d\ttime: %d ticks", step, t, max_iter, time_end - time_start);
+
+                ofstream f_forces("force_x_y.txt", ios::app);
+                write_to_file_forces(f_forces, t);
+                f_forces.close();
 			}
 		}
 		else
