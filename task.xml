@@ -5,9 +5,9 @@
 		<processors value="64" />
 	</decomp>
 	<control>
-                 <STEADY value="0" />
-		 <CFL value="1000.1"> 			<!-- число Куранта -->
-		  <start value="1.0" />
+                 <STEADY value="1" />
+	<CFL value="0.9"> 			<!-- число Куранта -->
+		  <start value="0.9" />
 		  <scale value="1.05" />
 		  <max value="1.0" />
 		  <step value="500" />
@@ -16,8 +16,8 @@
 		<TAU 			value="8.0e-6" />		<!-- шаг по времени, используется меньшее значение из этого или из полученного из числа Куранта -->
 		<TMAX 			value="20" />			<!-- время, до которго выполняется расчет -->
                 <STEP_MAX value="100000000" />
-                <FILE_OUTPUT_STEP 	value="12000" />            <!-- количество итераций, через которые выполняется вывод результатов в файл -->
-		<LOG_OUTPUT_STEP 	value="4000" />          <!-- интервал вывода краткой информации в лог-файл -->
+                <FILE_OUTPUT_STEP 	value="100" />            <!-- количество итераций, через которые выполняется вывод результатов в файл -->
+		<LOG_OUTPUT_STEP 	value="1" />          <!-- интервал вывода краткой информации в лог-файл -->
                 <FLUX value="GODUNOV" /> <!-- LAX, GODUNOV -->
                 <TURBULENCE_MODEL value="K_EPS" />
 	</control>

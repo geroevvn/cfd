@@ -40,9 +40,10 @@ private:
 		int				STEP_MAX;
 		int 			FILE_STEP_SAVE;
 		int 			LOG_STEP_SAVE;
-		double			TAU;
+		double*			TAU_CFL;
+		double          TAU;
 		double			CFL;
-		int             STEADY;
+		bool             STEADY;
 
 		double* Flux;
 		double* Flux1;

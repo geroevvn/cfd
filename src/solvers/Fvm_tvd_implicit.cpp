@@ -39,6 +39,7 @@ FVM_TVD_IMPLICIT::~FVM_TVD_IMPLICIT()
 	delete [] Flux;
 	delete [] Flux1;
 	delete [] Flux2;
+	delete [] TAU_CFL;
 
 	if(grid != 0)
 	{
@@ -87,14 +88,15 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 
 	msh = grid->get_mesh();
 
-	//int steadyVal = 1;
+	int steadyVal = 0;
 	node0 = task->FirstChild("control");
-	node0->FirstChild("STEADY")->ToElement()->Attribute("value", &STEADY);
+	node0->FirstChild("STEADY")->ToElement()->Attribute("value", &steadyVal);
 	node0->FirstChild("TAU")->ToElement()->Attribute("value", &TAU);
 	node0->FirstChild("TMAX")->ToElement()->Attribute("value", &TMAX);
 	node0->FirstChild("STEP_MAX")->ToElement()->Attribute("value", &STEP_MAX);
 	node0->FirstChild("FILE_OUTPUT_STEP")->ToElement()->Attribute("value", &FILE_STEP_SAVE);
 	node0->FirstChild("LOG_OUTPUT_STEP")->ToElement()->Attribute("value", &LOG_STEP_SAVE);
+
 
 	/*
 	const char * flxStr = node0->FirstChild("FLUX")->ToElement()->Attribute("value");
@@ -107,19 +109,22 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 	else {
 		FLUX = FLUX_GODUNOV;
 	}
-
+    */
 	if (steadyVal == 0) {
 		STEADY = false;
 	} else {
 		STEADY = true;
 		node1 = node0->FirstChild("CFL");
 		node1->FirstChild("start")->ToElement()->Attribute("value", &CFL);
+        /*
 		node1->FirstChild("scale")->ToElement()->Attribute("value", &scaleCFL);
 		node1->FirstChild("max")->ToElement()->Attribute("value", &maxCFL);
 		node1->FirstChild("step")->ToElement()->Attribute("value", &stepCFL);
 		node1->FirstChild("max_limited_cells")->ToElement()->Attribute("value", &maxLimCells);
+        */
 	}
 
+    /*
 
 	int smUsing = 1;
 	node0 = task->FirstChild("smoothing");
@@ -186,6 +191,14 @@ void FVM_TVD_IMPLICIT::init(char* xmlFileName)
 
 		regNode = regNode->NextSibling("region");
 	}
+
+
+    TAU_CFL = new double[ msh->cells.size() ];
+
+    for(int i = 0; i < msh->cells.size(); i++)
+    {
+        TAU_CFL[i] = TAU;
+    }
 
 
 	node0 = task->FirstChild("boundaries");
@@ -280,6 +293,203 @@ int FVM_TVD_IMPLICIT::check_bnd_cond()
 
 	return ( v1.size() == v2.size() && std::equal(v1.begin(), v1.end(), v2.begin()) );
 }
+
+
+/*
+void init_tau_step()
+{
+    double* temp_array = new double[ msh->faces.size() ];
+
+    memset(temp_array, 0, msh->faces.size() * sizeof(double));
+
+
+    for(Mesh::BndFaceIterator it = msh->beginBndFace(&(msh->bnd_faces), &bndWallNames), ite = msh->endBndFace(&(msh->bnd_faces), &bndWallNames); it != ite; ++it)
+    {
+        c1 = it->c[0]->index;
+
+        it->faceFDP.ro = it->c[0]->cellFDP.ro;
+        it->faceFDP.P = it->c[0]->cellFDP.P;
+        it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
+        it->faceFDP.rE = it->c[0]->cellFDP.rE;
+
+        double rvel_n = it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z;
+
+        it->faceFDP.ru = it->c[0]->cellFDP.ru - 2 * rvel_n * it->n.x;
+        it->faceFDP.rv = it->c[0]->cellFDP.rv - 2 * rvel_n * it->n.y;
+        it->faceFDP.rw = it->c[0]->cellFDP.rw - 2 * rvel_n * it->n.z;
+
+
+        CellFluidDynamicsProps cfdp1 = face->faceFDP
+
+
+        double eigen_val1 = sqrt(cfdp1.gamma * cfdp1.P / cfdp1.ro) + abs( v_n1 );
+        double eigen_val2 = sqrt(cfdp2.gamma * cfdp2.P / cfdp2.ro) + abs( v_n2 );
+        double alpha = _max(eigen_val1, eigen_val2);
+
+    }
+
+
+		for(Mesh::BndFaceIterator it = msh->beginBndFace(&(msh->bnd_faces), &bndInletNames), ite = msh->endBndFace(&(msh->bnd_faces), &bndInletNames); it != ite; ++it)
+		{
+			c1 = it->c[0]->index;
+
+			flux_Lax_Friedrichs(Flux, it->c[0]->cellFDP, it->faceFDP, it->n);
+
+			for(int i = 0; i < 5; i++)
+			{
+				right5[ c1 ][i] -= Flux[i] * it->S;
+
+			}
+
+			CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, it->c[0]->cellFDP, it->faceFDP);
+
+			eigen_values(eigen_vals, temp_u, temp_v, temp_w, temp_c, it->n);
+			left_eigen_vecs(left_vecs, temp_u, temp_v, temp_w, temp_c, temp_GAMMA, it->n);
+			right_eigen_vecs(right_vecs, temp_u, temp_v, temp_w, temp_c, temp_H, it->n);
+
+			matrix_A(A_plus, right_vecs, eigen_vals, left_vecs, FVM_TVD_IMPLICIT::PLUS_JACOBIAN);
+
+			for(int i = 0; i < 5; i++)
+			{
+				for(int j = 0; j < 5; j++)
+				{
+					A_plus[i][j] *= it->S;
+				}
+			}
+
+			solverMtx->addMatrElement(c1, c1, A_plus);
+		}
+
+
+		for(Mesh::BndFaceIterator it = msh->beginBndFace(&(msh->bnd_faces), &bndOutletNames), ite = msh->endBndFace(&(msh->bnd_faces), &bndOutletNames); it != ite; ++it)
+		{
+			c1 = it->c[0]->index;
+
+			it->faceFDP.ro = it->c[0]->cellFDP.ro;
+			it->faceFDP.ru = it->c[0]->cellFDP.ru;
+			it->faceFDP.rv = it->c[0]->cellFDP.rv;
+			it->faceFDP.rw = it->c[0]->cellFDP.rw;
+			it->faceFDP.rE = it->c[0]->cellFDP.rE;
+			it->faceFDP.P = it->c[0]->cellFDP.P;
+			it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
+
+			flux_Lax_Friedrichs(Flux, it->c[0]->cellFDP, it->faceFDP, it->n);
+
+			for(int i = 0; i < 5; i++)
+			{
+				right5[ c1 ][i] -= Flux[i] * it->S;
+			}
+
+			CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, it->c[0]->cellFDP, it->faceFDP);
+
+			eigen_values(eigen_vals, temp_u, temp_v, temp_w, temp_c, it->n);
+			left_eigen_vecs(left_vecs, temp_u, temp_v, temp_w, temp_c, temp_GAMMA, it->n);
+			right_eigen_vecs(right_vecs, temp_u, temp_v, temp_w, temp_c, temp_H, it->n);
+
+			matrix_A(A_plus, right_vecs, eigen_vals, left_vecs, FVM_TVD_IMPLICIT::PLUS_JACOBIAN);
+
+			for(int i = 0; i < 5; i++)
+			{
+				for(int j = 0; j < 5; j++)
+				{
+					A_plus[i][j] *= it->S;
+				}
+			}
+
+			solverMtx->addMatrElement(c1, c1, A_plus);
+		}
+
+
+
+		for(Mesh::FaceIterator it = msh->beginInnerFace(), ite = msh->endInnerFace(); it != ite; ++it)
+		{
+			oc = it->out_cell;
+			ic = it->in_cell;
+			c1 = it->c[oc]->index;
+			c2 = it->c[ic]->index;
+
+			flux_Lax_Friedrichs(Flux, it->c[oc]->cellFDP, it->c[ic]->cellFDP, it->n);
+
+			for(int i = 0; i < 5; i++)
+			{
+				right5[ c1 ][i] -= Flux[i] * it->S;
+				right5[ c2 ][i] += Flux[i] * it->S;
+			}
+
+			CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, it->c[0]->cellFDP, it->c[1]->cellFDP);
+
+			eigen_values(eigen_vals, temp_u, temp_v, temp_w, temp_c, it->n);
+			left_eigen_vecs(left_vecs, temp_u, temp_v, temp_w, temp_c, temp_GAMMA, it->n);
+			right_eigen_vecs(right_vecs, temp_u, temp_v, temp_w, temp_c, temp_H, it->n);
+
+
+			matrix_A(A_plus, right_vecs, eigen_vals, left_vecs, FVM_TVD_IMPLICIT::PLUS_JACOBIAN);
+			matrix_A(A_minus, right_vecs, eigen_vals, left_vecs, FVM_TVD_IMPLICIT::MINUS_JACOBIAN);
+
+
+			for(int i = 0; i < 5; i++)
+			{
+				for(int j = 0; j < 5; j++)
+				{
+					A_plus[i][j]  *= it->S;
+					A_minus[i][j] *= it->S;
+				}
+			}
+
+			solverMtx->addMatrElement(c1, c1, A_plus);
+			solverMtx->addMatrElement(c1, c2, A_minus);
+
+			pc.x = -it->n.x;
+			pc.y = -it->n.y;
+			pc.z = -it->n.z;
+
+			eigen_values(eigen_vals, temp_u, temp_v, temp_w, temp_c, pc);
+			left_eigen_vecs(left_vecs, temp_u, temp_v, temp_w, temp_c, temp_GAMMA, pc);
+			right_eigen_vecs(right_vecs, temp_u, temp_v, temp_w, temp_c, temp_H, pc);
+
+			matrix_A(A_plus, right_vecs, eigen_vals, left_vecs, FVM_TVD_IMPLICIT::PLUS_JACOBIAN);
+			matrix_A(A_minus, right_vecs, eigen_vals, left_vecs, FVM_TVD_IMPLICIT::MINUS_JACOBIAN);
+
+
+			for(int i = 0; i < 5; i++)
+			{
+				for(int j = 0; j < 5; j++)
+				{
+					A_plus[i][j]  *= it->S;
+					A_minus[i][j] *= it->S;
+				}
+			}
+
+			solverMtx->addMatrElement(c2, c2, A_plus);
+			solverMtx->addMatrElement(c2, c1, A_minus);
+		}
+
+
+
+    for(Mesh::CellIterator it = msh->beginCell(), ite = msh->endCell(); it != ite; ++it)
+    {
+        int ind = it->index;
+
+        double sum = 0;
+        for(int i = 0; i < it->fCount; i++)
+        {
+            Face* face = it->f[i];
+
+            CellFluidDynamicsProps cfdp1 = face->faceFDP
+
+
+            double eigen_val1 = sqrt(cfdp1.gamma * cfdp1.P / cfdp1.ro) + abs( v_n1 );
+            double eigen_val2 = sqrt(cfdp2.gamma * cfdp2.P / cfdp2.ro) + abs( v_n2 );
+            double alpha = _max(eigen_val1, eigen_val2);
+        }
+
+        tau_cfl[ind] = CFL * it->V / sum;
+    }
+
+    delete [] temp_array;
+}
+*/
+
 
 
 void FVM_TVD_IMPLICIT::done()
@@ -653,7 +863,12 @@ void FVM_TVD_IMPLICIT::run()
 		right5[i] = new double[5];
 	}
 
-    //double* tau_cfl = new double[nc];
+    double* temp_buff;
+
+    if(STEADY)
+    {
+        temp_buff = new double[nc];
+	}
 
 	double* eigen_vals = new double[5];
 	double** left_vecs = allocate_mem();
@@ -679,7 +894,6 @@ void FVM_TVD_IMPLICIT::run()
 	Point pc;
 
 
-    //init_tau_array(tau_cfl);
 
 	Logger::Instance()->logging()->info("Matrix structure initialization");
 
@@ -719,7 +933,15 @@ void FVM_TVD_IMPLICIT::run()
 		long time_start, time_end;
 		time_start = clock();
 
-		t += TAU;
+        if(!STEADY)
+        {
+            t += TAU;
+		}
+		else
+		{
+            memset(temp_buff, 0, nc * sizeof(double));
+		}
+
 		step++;
 
 		solverMtx->zero();
@@ -744,6 +966,19 @@ void FVM_TVD_IMPLICIT::run()
 			it->faceFDP.ru = it->c[0]->cellFDP.ru - 2 * rvel_n * it->n.x;
 			it->faceFDP.rv = it->c[0]->cellFDP.rv - 2 * rvel_n * it->n.y;
 			it->faceFDP.rw = it->c[0]->cellFDP.rw - 2 * rvel_n * it->n.z;
+
+
+            if(STEADY)
+            {
+                double v_n1 = (it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z) / it->c[0]->cellFDP.ro;
+                double v_n2 = (it->faceFDP.ru * it->n.x + it->faceFDP.rv * it->n.y + it->faceFDP.rw * it->n.z) / it->faceFDP.ro;
+                double eigen_val1 = sqrt(it->c[0]->cellFDP.gamma * it->c[0]->cellFDP.P / it->c[0]->cellFDP.ro) + abs( v_n1 );
+                double eigen_val2 = sqrt(it->faceFDP.gamma * it->faceFDP.P / it->faceFDP.ro) + abs( v_n2 );
+                double alpha = _max(eigen_val1, eigen_val2);
+
+                temp_buff[c1] += alpha * it->S;
+            }
+
 
 			flux_Lax_Friedrichs(Flux, it->c[0]->cellFDP, it->faceFDP, it->n);
 
@@ -782,8 +1017,20 @@ void FVM_TVD_IMPLICIT::run()
 			for(int i = 0; i < 5; i++)
 			{
 				right5[ c1 ][i] -= Flux[i] * it->S;
-
 			}
+
+
+            if(STEADY)
+            {
+                double v_n1 = (it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z) / it->c[0]->cellFDP.ro;
+                double v_n2 = (it->faceFDP.ru * it->n.x + it->faceFDP.rv * it->n.y + it->faceFDP.rw * it->n.z) / it->faceFDP.ro;
+                double eigen_val1 = sqrt(it->c[0]->cellFDP.gamma * it->c[0]->cellFDP.P / it->c[0]->cellFDP.ro) + abs( v_n1 );
+                double eigen_val2 = sqrt(it->faceFDP.gamma * it->faceFDP.P / it->faceFDP.ro) + abs( v_n2 );
+                double alpha = _max(eigen_val1, eigen_val2);
+
+                temp_buff[c1] += alpha * it->S;
+            }
+
 
 			CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, it->c[0]->cellFDP, it->faceFDP);
 
@@ -816,6 +1063,17 @@ void FVM_TVD_IMPLICIT::run()
 			it->faceFDP.rE = it->c[0]->cellFDP.rE;
 			it->faceFDP.P = it->c[0]->cellFDP.P;
 			it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
+
+			if(STEADY)
+            {
+                double v_n1 = (it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z) / it->c[0]->cellFDP.ro;
+                double v_n2 = (it->faceFDP.ru * it->n.x + it->faceFDP.rv * it->n.y + it->faceFDP.rw * it->n.z) / it->faceFDP.ro;
+                double eigen_val1 = sqrt(it->c[0]->cellFDP.gamma * it->c[0]->cellFDP.P / it->c[0]->cellFDP.ro) + abs( v_n1 );
+                double eigen_val2 = sqrt(it->faceFDP.gamma * it->faceFDP.P / it->faceFDP.ro) + abs( v_n2 );
+                double alpha = _max(eigen_val1, eigen_val2);
+
+                temp_buff[c1] += alpha * it->S;
+            }
 
 			flux_Lax_Friedrichs(Flux, it->c[0]->cellFDP, it->faceFDP, it->n);
 
@@ -851,6 +1109,20 @@ void FVM_TVD_IMPLICIT::run()
 			ic = it->in_cell;
 			c1 = it->c[oc]->index;
 			c2 = it->c[ic]->index;
+
+
+            if(STEADY)
+            {
+                double v_n1 = (it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z) / it->c[0]->cellFDP.ro;
+                double v_n2 = (it->c[1]->cellFDP.ru * it->n.x + it->c[1]->cellFDP.rv * it->n.y + it->c[1]->cellFDP.rw * it->n.z) / it->c[1]->cellFDP.ro;
+                double eigen_val1 = sqrt(it->c[0]->cellFDP.gamma * it->c[0]->cellFDP.P / it->c[0]->cellFDP.ro) + abs( v_n1 );
+                double eigen_val2 = sqrt(it->c[1]->cellFDP.gamma * it->c[1]->cellFDP.P / it->c[1]->cellFDP.ro) + abs( v_n2 );
+                double alpha = _max(eigen_val1, eigen_val2);
+
+                temp_buff[c1] += alpha * it->S;
+                temp_buff[c2] += alpha * it->S;
+            }
+
 
 			flux_Lax_Friedrichs(Flux, it->c[oc]->cellFDP, it->c[ic]->cellFDP, it->n);
 
@@ -912,17 +1184,20 @@ void FVM_TVD_IMPLICIT::run()
 		for(Mesh::CellIterator it = msh->beginCell(), ite = msh->endCell(); it != ite; ++it)
 		{
 			c1 = it->index;
-			double V_tau = it->V / TAU;
+
+            if(STEADY)
+            {
+                TAU_CFL[c1] = CFL * it->V / temp_buff[c1];
+            }
 
 			for(int i = 0; i < 5; i++)
 			{
-				mtx5[i][i] = V_tau;
+				mtx5[i][i] = it->V / TAU_CFL[c1];
 			}
 
 			solverMtx->addMatrElement(c1, c1, mtx5);
 			solverMtx->setRightElement(c1, right5[c1]);
 		}
-
 
 		solveErr = solverMtx->solve(eps, max_iter);
 
@@ -951,11 +1226,22 @@ void FVM_TVD_IMPLICIT::run()
 
 			if(step % LOG_STEP_SAVE == 0)
 			{
-				Logger::Instance()->logging()->info("step : %d\ttime step : %.16f\t max iter: %d\ttime: %d ticks", step, t, max_iter, time_end - time_start);
+                if(STEADY)
+                {
+                    Logger::Instance()->logging()->info("step : %d\tmax iter: %d\ttime: %d ticks", step, max_iter, time_end - time_start);
 
-                ofstream f_forces("force_x_y.txt", ios::app);
-                write_to_file_forces(f_forces, t);
-                f_forces.close();
+                    ofstream f_forces("force_x_y.txt", ios::app);
+                    write_to_file_forces(f_forces, step);
+                    f_forces.close();
+                }
+                else
+                {
+                    Logger::Instance()->logging()->info("step : %d\ttime step : %.16f\t max iter: %d\ttime: %d ticks", step, t, max_iter, time_end - time_start);
+
+                    ofstream f_forces("force_x_y.txt", ios::app);
+                    write_to_file_forces(f_forces, t);
+                    f_forces.close();
+                }
 			}
 		}
 		else
@@ -974,6 +1260,11 @@ void FVM_TVD_IMPLICIT::run()
 	free_mem(A_plus);
 	free_mem(A_minus);
 	free_mem(mtx5);
+
+    if(STEADY)
+    {
+        delete [] temp_buff;
+	}
 
 	delete [] eigen_vals;
 
@@ -3480,6 +3771,12 @@ void FVM_TVD_IMPLICIT::save(int step)
         double c_2 =  msh->cells[i]->cellFDP.gamma * msh->cells[i]->cellFDP.P / ro;
 
 	   fprintf(out, "%25.16f\n", sqrt( (u*u + v*v + w*w) / c_2 ) );
+	}
+
+	fprintf(out, "SCALARS TAU double 1\nLOOKUP_TABLE default\n");
+	for (int i = 0; i < cellCount; i++)
+	{
+	   fprintf(out, "%25.16f\n", TAU_CFL[i] );
 	}
 
     fprintf(out, "VECTORS Velocity double \n");
