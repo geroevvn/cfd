@@ -772,6 +772,7 @@ void MeshReaderUnv::read(Mesh* mesh, const char* filename)
 			(*it)->volume();
 	}
 
+
 	mesh->cnt_of_points = 0;
 	for(vector<Cell*>::iterator it = mesh->cells.begin(); it != mesh->cells.end(); ++it)
 	{
