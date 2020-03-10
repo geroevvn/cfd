@@ -672,14 +672,14 @@ void FVM_TVD_IMPLICIT::run()
 	for(int i = 0; i < nc; i++)
 	{
 		right5[i] = new double[5];
-    }
+    	}
 
-    double* temp_buff;
+    	double* temp_buff;
 
-    if(STEADY)
-    {
-        temp_buff = new double[nc];
-    }
+    	if(STEADY)
+    	{
+        	temp_buff = new double[nc];
+    	}
 
 	double* eigen_vals = new double[5];
 	double** left_vecs = allocate_mem();
@@ -728,29 +728,25 @@ void FVM_TVD_IMPLICIT::run()
 
 	Logger::Instance()->logging()->info("complete...");
 
-
-
 	Logger::Instance()->logging()->info("Solving the equation (FVM_TVD_IMPLICIT) ");
 
+	ofstream f_forces;
+	f_forces.open("force_x_y.txt");
+	write_to_file_forces(f_forces, 0);
+	f_forces.close();
 
-    ofstream f_forces;
-
-    f_forces.open("force_x_y.txt");
-    write_to_file_forces(f_forces, 0);
-    f_forces.close();
-
-	while(t < TMAX && step < STEP_MAX)
+    	while(t < TMAX && step < STEP_MAX)
 	{
 		long time_start, time_end;
 		time_start = clock();
 
-        if(!STEADY)
-        {
-            t += TAU;
+        	if(!STEADY)
+        	{
+            		t += TAU;
 		}
-		else
+        	else
 		{
-            memset(temp_buff, 0, nc * sizeof(double));
+           		 memset(temp_buff, 0, nc * sizeof(double));
 		}
 
 		step++;
@@ -766,10 +762,10 @@ void FVM_TVD_IMPLICIT::run()
 		{
 			c1 = it->c[0]->index;
 
-            it->faceFDP.ro = it->c[0]->cellFDP.ro;
+            		it->faceFDP.ro = it->c[0]->cellFDP.ro;
 			it->faceFDP.P = it->c[0]->cellFDP.P;
 			it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
-            it->faceFDP.rE = it->c[0]->cellFDP.rE;
+           	        it->faceFDP.rE = it->c[0]->cellFDP.rE;
 
 			double rvel_n = it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z;
 
@@ -779,16 +775,16 @@ void FVM_TVD_IMPLICIT::run()
 			it->faceFDP.rw = it->c[0]->cellFDP.rw - 2 * rvel_n * it->n.z;
 
 
-            if(STEADY)
-            {
-                double v_n1 = (it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z) / it->c[0]->cellFDP.ro;
-                double v_n2 = (it->faceFDP.ru * it->n.x + it->faceFDP.rv * it->n.y + it->faceFDP.rw * it->n.z) / it->faceFDP.ro;
-                double eigen_val1 = sqrt(it->c[0]->cellFDP.gamma * it->c[0]->cellFDP.P / it->c[0]->cellFDP.ro) + abs( v_n1 );
-                double eigen_val2 = sqrt(it->faceFDP.gamma * it->faceFDP.P / it->faceFDP.ro) + abs( v_n2 );
-                double alpha = _max(eigen_val1, eigen_val2);
+			if(STEADY)
+			{
+				double v_n1 = (it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z) / it->c[0]->cellFDP.ro;
+				double v_n2 = (it->faceFDP.ru * it->n.x + it->faceFDP.rv * it->n.y + it->faceFDP.rw * it->n.z) / it->faceFDP.ro;
+				double eigen_val1 = sqrt(it->c[0]->cellFDP.gamma * it->c[0]->cellFDP.P / it->c[0]->cellFDP.ro) + abs( v_n1 );
+				double eigen_val2 = sqrt(it->faceFDP.gamma * it->faceFDP.P / it->faceFDP.ro) + abs( v_n2 );
+				double alpha = _max(eigen_val1, eigen_val2);
 
-                temp_buff[c1] += alpha * it->S;
-            }
+				temp_buff[c1] += alpha * it->S;
+			}
 
 
 			flux_Lax_Friedrichs(Flux, it->c[0]->cellFDP, it->faceFDP, it->n);
@@ -831,16 +827,16 @@ void FVM_TVD_IMPLICIT::run()
 			}
 
 
-            if(STEADY)
-            {
-                double v_n1 = (it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z) / it->c[0]->cellFDP.ro;
-                double v_n2 = (it->faceFDP.ru * it->n.x + it->faceFDP.rv * it->n.y + it->faceFDP.rw * it->n.z) / it->faceFDP.ro;
-                double eigen_val1 = sqrt(it->c[0]->cellFDP.gamma * it->c[0]->cellFDP.P / it->c[0]->cellFDP.ro) + abs( v_n1 );
-                double eigen_val2 = sqrt(it->faceFDP.gamma * it->faceFDP.P / it->faceFDP.ro) + abs( v_n2 );
-                double alpha = _max(eigen_val1, eigen_val2);
+			if(STEADY)
+			{
+				double v_n1 = (it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z) / it->c[0]->cellFDP.ro;
+				double v_n2 = (it->faceFDP.ru * it->n.x + it->faceFDP.rv * it->n.y + it->faceFDP.rw * it->n.z) / it->faceFDP.ro;
+				double eigen_val1 = sqrt(it->c[0]->cellFDP.gamma * it->c[0]->cellFDP.P / it->c[0]->cellFDP.ro) + abs( v_n1 );
+				double eigen_val2 = sqrt(it->faceFDP.gamma * it->faceFDP.P / it->faceFDP.ro) + abs( v_n2 );
+				double alpha = _max(eigen_val1, eigen_val2);
 
-                temp_buff[c1] += alpha * it->S;
-            }
+				temp_buff[c1] += alpha * it->S;
+			}
 
 
 			CellFluidDynamicsProps::calc_Roe_Avg(temp_u, temp_v, temp_w, temp_H, temp_c, temp_GAMMA, it->c[0]->cellFDP, it->faceFDP);
@@ -876,15 +872,15 @@ void FVM_TVD_IMPLICIT::run()
 			it->faceFDP.gamma = it->c[0]->cellFDP.gamma;
 
 			if(STEADY)
-            {
-                double v_n1 = (it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z) / it->c[0]->cellFDP.ro;
-                double v_n2 = (it->faceFDP.ru * it->n.x + it->faceFDP.rv * it->n.y + it->faceFDP.rw * it->n.z) / it->faceFDP.ro;
-                double eigen_val1 = sqrt(it->c[0]->cellFDP.gamma * it->c[0]->cellFDP.P / it->c[0]->cellFDP.ro) + abs( v_n1 );
-                double eigen_val2 = sqrt(it->faceFDP.gamma * it->faceFDP.P / it->faceFDP.ro) + abs( v_n2 );
-                double alpha = _max(eigen_val1, eigen_val2);
+           		{
+				double v_n1 = (it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z) / it->c[0]->cellFDP.ro;
+				double v_n2 = (it->faceFDP.ru * it->n.x + it->faceFDP.rv * it->n.y + it->faceFDP.rw * it->n.z) / it->faceFDP.ro;
+				double eigen_val1 = sqrt(it->c[0]->cellFDP.gamma * it->c[0]->cellFDP.P / it->c[0]->cellFDP.ro) + abs( v_n1 );
+				double eigen_val2 = sqrt(it->faceFDP.gamma * it->faceFDP.P / it->faceFDP.ro) + abs( v_n2 );
+				double alpha = _max(eigen_val1, eigen_val2);
 
-                temp_buff[c1] += alpha * it->S;
-            }
+				temp_buff[c1] += alpha * it->S;
+           		}
 
 			flux_Lax_Friedrichs(Flux, it->c[0]->cellFDP, it->faceFDP, it->n);
 
@@ -922,17 +918,17 @@ void FVM_TVD_IMPLICIT::run()
 			c2 = it->c[ic]->index;
 
 
-            if(STEADY)
-            {
-                double v_n1 = (it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z) / it->c[0]->cellFDP.ro;
-                double v_n2 = (it->c[1]->cellFDP.ru * it->n.x + it->c[1]->cellFDP.rv * it->n.y + it->c[1]->cellFDP.rw * it->n.z) / it->c[1]->cellFDP.ro;
-                double eigen_val1 = sqrt(it->c[0]->cellFDP.gamma * it->c[0]->cellFDP.P / it->c[0]->cellFDP.ro) + abs( v_n1 );
-                double eigen_val2 = sqrt(it->c[1]->cellFDP.gamma * it->c[1]->cellFDP.P / it->c[1]->cellFDP.ro) + abs( v_n2 );
-                double alpha = _max(eigen_val1, eigen_val2);
+			if(STEADY)
+			{
+				double v_n1 = (it->c[0]->cellFDP.ru * it->n.x + it->c[0]->cellFDP.rv * it->n.y + it->c[0]->cellFDP.rw * it->n.z) / it->c[0]->cellFDP.ro;
+				double v_n2 = (it->c[1]->cellFDP.ru * it->n.x + it->c[1]->cellFDP.rv * it->n.y + it->c[1]->cellFDP.rw * it->n.z) / it->c[1]->cellFDP.ro;
+				double eigen_val1 = sqrt(it->c[0]->cellFDP.gamma * it->c[0]->cellFDP.P / it->c[0]->cellFDP.ro) + abs( v_n1 );
+				double eigen_val2 = sqrt(it->c[1]->cellFDP.gamma * it->c[1]->cellFDP.P / it->c[1]->cellFDP.ro) + abs( v_n2 );
+				double alpha = _max(eigen_val1, eigen_val2);
 
-                temp_buff[c1] += alpha * it->S;
-                temp_buff[c2] += alpha * it->S;
-            }
+				temp_buff[c1] += alpha * it->S;
+				temp_buff[c2] += alpha * it->S;
+			}
 
 
 			flux_Lax_Friedrichs(Flux, it->c[oc]->cellFDP, it->c[ic]->cellFDP, it->n);
@@ -996,10 +992,10 @@ void FVM_TVD_IMPLICIT::run()
 		{
 			c1 = it->index;
 
-            if(STEADY)
-            {
-                TAU_CFL[c1] = CFL * it->V / temp_buff[c1];
-            }
+			if(STEADY)
+			{
+				TAU_CFL[c1] = CFL * it->V / temp_buff[c1];
+			}
 
 			for(int i = 0; i < 5; i++)
 			{
@@ -1037,22 +1033,22 @@ void FVM_TVD_IMPLICIT::run()
 
 			if(step % LOG_STEP_SAVE == 0)
 			{
-                if(STEADY)
-                {
-                    Logger::Instance()->logging()->info("step : %d\tmax iter: %d\ttime: %d ticks", step, max_iter, time_end - time_start);
+				if(STEADY)
+				{
+				    Logger::Instance()->logging()->info("step : %d\tmax iter: %d\ttime: %d ticks", step, max_iter, time_end - time_start);
 
-                    ofstream f_forces("force_x_y.txt", ios::app);
-                    write_to_file_forces(f_forces, step);
-                    f_forces.close();
-                }
-                else
-                {
-                    Logger::Instance()->logging()->info("step : %d\ttime step : %.16f\t max iter: %d\ttime: %d ticks", step, t, max_iter, time_end - time_start);
+				    ofstream f_forces("force_x_y.txt", ios::app);
+				    write_to_file_forces(f_forces, step);
+				    f_forces.close();
+				}
+				else
+				{
+				    Logger::Instance()->logging()->info("step : %d\ttime step : %.16f\t max iter: %d\ttime: %d ticks", step, t, max_iter, time_end - time_start);
 
-                    ofstream f_forces("force_x_y.txt", ios::app);
-                    write_to_file_forces(f_forces, t);
-                    f_forces.close();
-                }
+				    ofstream f_forces("force_x_y.txt", ios::app);
+				    write_to_file_forces(f_forces, t);
+				    f_forces.close();
+				}
 			}
 		}
 		else
@@ -1062,9 +1058,8 @@ void FVM_TVD_IMPLICIT::run()
 
 	}
 
-    save(step);
-    Logger::Instance()->logging()->info("complete...");
-
+    	save(step);
+    	Logger::Instance()->logging()->info("complete...");
 
 	free_mem(left_vecs);
 	free_mem(right_vecs);
@@ -1072,9 +1067,9 @@ void FVM_TVD_IMPLICIT::run()
 	free_mem(A_minus);
 	free_mem(mtx5);
 
-    if(STEADY)
-    {
-        delete [] temp_buff;
+    	if(STEADY)
+    	{
+        	delete [] temp_buff;
 	}
 
 	delete [] eigen_vals;
